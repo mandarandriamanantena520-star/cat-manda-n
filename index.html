@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Henri Fraise Fils & Cie - Mahanoro | Calendrier + CAT-System</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111'/%3E%3Ctext x='32' y='42' font-family='Arial' font-size='28' font-weight='900' fill='%23FFCC11' text-anchor='middle'%3ECAT%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FFCC11">
+</head>
+<body>
+  <!-- ===== HEADER ===== -->
+  <header>
+    <div class="header-brand">
+      <div class="logo">CAT</div>
+      <div>
+        <h1>Henri Fraise Fils & Cie • Mahanoro</h1>
+        <p data-i18n="header_sub">Calendrier + CAT-System • Groupes Électrogènes</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-header" id="btnOpenLeaves">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="3" y1="9" x2="21" y2="9"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="9" y1="15" x2="15" y2="15"/>
+        </svg>
+        <span data-i18n="nav_leaves">Congés</span>
+        <span class="nav-badge" id="leavesBadge">0</span>
+      </button>
+      <div class="lang">
+        <button type="button" id="btnFR" class="active">Français</button>
+        <button type="button" id="btnMG">Malagasy</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- ===== MAIN TABS ===== -->
+    <div class="main-tabs">
+      <button type="button" id="mainBtn-cal" class="active">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="3" y1="9" x2="21" y2="9"/>
+        </svg>
+        <span data-i18n="tab_cal">Calendrier</span>
+      </button>
+      <button type="button" id="mainBtn-cat">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M16.9 16.9l2.8 2.8"/>
+        </svg>
+        <span>CAT - System</span>
+      </button>
+    </div>
+
+    <!-- ===== CALENDRIER (PLEINE LARGEUR) ===== -->
+    <div id="main-cal">
+      <div class="view-toggle">
+        <button type="button" id="btnGrid" class="active"><span data-i18n="view_grid">Grille</span></button>
+        <button type="button" id="btnList"><span data-i18n="view_list">Liste</span></button>
+      </div>
+
+      <div class="card cal-toolbar">
+        <div class="cal-nav">
+          <button type="button" class="btn btn-black" id="btnCalPrev"><span data-i18n="prev">Précédent</span></button>
+          <button type="button" class="btn btn-yellow" id="btnCalToday"><span data-i18n="today">Aujourd'hui</span></button>
+          <button type="button" class="btn btn-black" id="btnCalNext"><span data-i18n="next">Suivant</span></button>
+          <select id="yearSelect"></select>
+          <select id="monthSelect"></select>
+        </div>
+        <div class="cal-filters">
+          <label data-i18n="my_planning">Mon planning :</label>
+          <select id="meSelect">
+            <option value="Tous" data-i18n="all_agents">Tous les agents</option>
+            <option value="Nandrianina" selected>Nandrianina</option>
+            <option value="Eddy">Eddy</option>
+            <option value="Jimmy">Jimmy</option>
+            <option value="Michel">Michel</option>
+          </select>
+          <button type="button" class="btn btn-gray" id="btnPrintCal"><span data-i18n="print">Imprimer</span></button>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span data-i18n="legend_day">Jour 7h - 17h</span>
+        <span data-i18n="legend_night">Nuit 17h - 7h</span>
+        <span data-i18n="legend_click">Cliquez sur un jour pour voir le détail</span>
+      </div>
+
+      <!-- Calendrier pleine largeur -->
+      <div class="cal-card" id="calendarSection">
+        <div class="cal-head">
+          <h2><span id="titleMonth"></span></h2>
+          <span id="titleInfo"></span>
+        </div>
+        <div class="weekdays" id="weekdaysRow"></div>
+        <div id="calendar"></div>
+        <div class="list-view" id="listView"></div>
+      </div>
+    </div>
+
+    <!-- ===== CAT SYSTEM ===== -->
+    <div id="main-cat" class="hidden">
+      <div class="top-stats">
+        <div class="stat"><span data-i18n="cat_releves">Relevés</span><strong id="sReleve">0</strong></div>
+        <div class="stat"><span data-i18n="cat_appoints">Appoints</span><strong id="sAppoint">0</strong></div>
+        <div class="stat"><span data-i18n="cat_ops">Opérations</span><strong id="sOps">0</strong></div>
+        <div class="stat"><span data-i18n="cat_ent">Entretiens</span><strong id="sEnt">0</strong></div>
+      </div>
+
+      <div class="sub-tabs">
+        <button type="button" id="catBtn-releve" class="active"><span data-i18n="cat_tab_releve">Relevé</span></button>
+        <button type="button" id="catBtn-jauge"><span data-i18n="cat_tab_jauge">Jaugeage</span></button>
+        <button type="button" id="catBtn-appoint"><span data-i18n="cat_tab_appoint">Appoint</span></button>
+        <button type="button" id="catBtn-ops"><span data-i18n="cat_tab_ops">Opérations</span></button>
+        <button type="button" id="catBtn-ent"><span data-i18n="cat_tab_ent">Entretien</span></button>
+        <button type="button" id="catBtn-cahier"><span data-i18n="cat_tab_cahier">Cahier</span></button>
+      </div>
+
+      <!-- Relevé -->
+      <div id="cat-releve">
+        <div class="card">
+          <h2 data-i18n="releve_title">Relevé Paramètres — Fiche Officielle</h2>
+          <p data-i18n="releve_desc">Température d'huile = G3 uniquement. Gasoil mm → Litres auto via barèmage C16.</p>
+          <div class="grid3">
+            <div><label data-i18n="group">Groupe</label><select id="rGroupe"><option>G1</option><option>G2</option><option selected>G3</option></select></div>
+            <div><label data-i18n="date">Date</label><input type="date" id="rDate"></div>
+            <div><label data-i18n="hour_read">Heure de lecture</label><select id="rHeure"><option>06:00</option><option>07:00</option><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option><option>18:00</option><option>18:30</option><option>19:00</option><option>19:30</option><option>20:00</option><option>20:30</option><option>21:00</option><option>22:00</option><option>23:00</option><option>00:00</option><option>01:00</option><option>02:00</option><option>03:00</option><option>04:00</option><option>05:00</option></select></div>
+          </div>
+          <div class="grid2">
+            <div><label data-i18n="agent">Agent</label><select id="rAgent"><option>Nandrianina</option><option>Eddy</option><option>Jimmy</option><option>Michel</option></select></div>
+            <div><label>Pmax</label><input type="text" id="rPmax"></div>
+          </div>
+
+          <div class="sec">ALTERNATEUR <span>CAT</span></div>
+          <div class="grid3">
+            <div><label>Puissance — MW</label><input type="number" step="0.01" id="rPuiss"></div>
+            <div><label>Tension — V</label><input type="number" id="rTension"></div>
+            <div><label>Intensité — KA</label><input type="number" step="0.01" id="rIntens"></div>
+            <div><label>Cos</label><input type="number" step="0.01" id="rCos"></div>
+            <div><label>RPM — T/m</label><input type="number" id="rRpm"></div>
+            <div><label>Fréquence — Hz</label><input type="number" step="0.1" id="rFreq"></div>
+          </div>
+
+          <div class="sec">MOTEUR — TEMPÉRATURE °C <span>°C</span></div>
+          <div class="grid3">
+            <div><label>Température Eau — °C</label><input type="number" id="rTempEau"></div>
+            <div id="wrapTempHuile"><label>Température Huile — °C (G3)</label><input type="number" id="rTempHuile"></div>
+            <div><label>Air ADM — °C</label><input type="number" id="rAirAdm"></div>
+            <div><label>Échappement G — °C</label><input type="number" id="rEchapG"></div>
+            <div><label>Échappement D — °C</label><input type="number" id="rEchapD"></div>
+          </div>
+
+          <div class="sec">MOTEUR — PRESSION KPA <span>KPA</span></div>
+          <div class="grid3">
+            <div><label>Pression Huile — KPA</label><input type="number" id="rPressHuile"></div>
+            <div><label>Pression Gas oil — KPA</label><input type="number" id="rPressGas"></div>
+            <div><label>P. Huile #</label><input type="text" id="rPHuile"></div>
+            <div><label>Pr. Gas oil #</label><input type="text" id="rPGas"></div>
+            <div><label>Filt air G — KPA</label><input type="number" id="rFiltG"></div>
+            <div><label>Filt air D — KPA</label><input type="number" id="rFiltD"></div>
+          </div>
+
+          <div class="sec">COMPTEUR <span>KWh / Litre / Hrs</span></div>
+          <div class="grid3">
+            <div><label>Énergie — KWh</label><input type="number" id="rEnergie"></div>
+            <div><label>Gas oil — mm</label><input type="number" id="rGasMm" placeholder="Ex: 215"></div>
+            <div><label>Gas oil — Litres (auto)</label><input type="text" id="rGasL" readonly></div>
+            <div><label>Heure Marche — Hrs</label><input type="number" id="rHeureMarche"></div>
+            <div><label>CT — cm</label><select id="rCT"></select></div>
+            <div><label data-i18n="obs">Observations</label><input type="text" id="rObs"></div>
+          </div>
+          <div class="result" id="releveResult">215 mm = 834,95 L</div>
+          <button type="button" class="btn btn-yellow btn-full mt-12" id="btnSaveReleve"><span data-i18n="save_releve">Enregistrer le relevé</span></button>
+        </div>
+        <div class="card">
+          <h2 data-i18n="hist_releve">Historique Relevés</h2>
+          <div class="filter-row">
+            <select id="fReleveGroupe"><option value="">Tous groupes</option><option>G1</option><option>G2</option><option>G3</option></select>
+            <input type="date" id="fReleveDate">
+          </div>
+          <div id="listReleve"></div>
+        </div>
+      </div>
+
+      <!-- Jauge -->
+      <div id="cat-jauge" class="hidden">
+        <div class="card">
+          <h2 data-i18n="jauge_title">Conversion Jaugeage — C16 Mahanoro</h2>
+          <p data-i18n="jauge_desc">Saisis la hauteur en mm (50 à 229 mm). Valeurs exactes du certificat.</p>
+          <div class="grid2">
+            <div><label>Hauteur mm</label><input type="number" id="jMm" placeholder="Ex: 215"></div>
+            <div><label>Litres</label><input type="text" id="jLitres" readonly></div>
+          </div>
+          <div class="result" id="jaugeResult">215 mm → 834,95 L</div>
+          <div class="btn-row mt-10">
+            <button type="button" class="btn btn-black" id="btnJauge215">Tester 215 mm</button>
+            <button type="button" class="btn btn-gray" id="btnJauge100">Tester 100 mm</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appoint -->
+      <div id="cat-appoint" class="hidden">
+        <div class="card">
+          <h2 data-i18n="appoint_title">Appoint Gasoil + Cuve Tampon</h2>
+          <div class="sec">A. GROUPE <span>G1 / G2 / G3</span></div>
+          <div class="grid3">
+            <div><label data-i18n="group">Groupe</label><select id="aGroupe"><option>G1</option><option>G2</option><option>G3</option></select></div>
+            <div><label data-i18n="date">Date</label><input type="date" id="aDate"></div>
+            <div><label data-i18n="state">État du groupe</label><select id="aEtat"><option>En marche (en service)</option><option>À l'arrêt (hors service)</option></select></div>
+            <div><label>Heure jaugeage avant</label><input type="time" id="aHeureAvant"></div>
+            <div><label>Niveau avant — mm</label><input type="number" id="aMmAvant"></div>
+            <div><label>Niveau avant — Litres</label><input type="text" id="aLAvant" readonly></div>
+          </div>
+          <div class="sec">B. APPROVISIONNEMENT <span>Heures + Quantité</span></div>
+          <div class="grid3">
+            <div><label>Heure début</label><input type="time" id="aHeureDebut"></div>
+            <div><label>Heure fin</label><input type="time" id="aHeureFin"></div>
+            <div><label>Quantité ajoutée — L</label><input type="number" id="aQte"></div>
+            <div><label>Niveau après — mm</label><input type="number" id="aMmApres"></div>
+            <div><label>Niveau après — Litres</label><input type="text" id="aLApres" readonly></div>
+            <div><label data-i18n="agent">Agent</label><select id="aAgent"><option>Nandrianina</option><option>Eddy</option><option>Jimmy</option><option>Michel</option></select></div>
+          </div>
+          <div class="sec">C. CUVE TAMPON CT <span>400 à 2400 cm</span></div>
+          <div class="grid2">
+            <div><label>CT avant — cm</label><select id="aCTAvant"></select></div>
+            <div><label>CT après — cm</label><select id="aCTApres"></select></div>
+          </div>
+          <label data-i18n="obs">Observations</label>
+          <textarea id="aObs"></textarea>
+          <div class="result" id="appointResult">Remplis les niveaux.</div>
+          <button type="button" class="btn btn-yellow btn-full mt-12" id="btnSaveAppoint"><span data-i18n="save_appoint">Enregistrer l'appoint</span></button>
+        </div>
+        <div class="card"><h2>Historique Appoints</h2><div id="listAppoint"></div></div>
+      </div>
+
+      <!-- Opérations -->
+      <div id="cat-ops" class="hidden">
+        <div class="card">
+          <h2 data-i18n="ops_title">Opérations — Remise / Couplage / Permutation</h2>
+          <p data-i18n="ops_desc">Remise : 2 heures obligatoires. Couplage / Permutation : heure exacte pour chaque action.</p>
+          <label>Type</label>
+          <select id="oType"><option value="Remise">Remise</option><option value="Couplage">Couplage</option><option value="Permutation">Permutation</option></select>
+          <div class="grid3">
+            <div><label data-i18n="date">Date</label><input type="date" id="oDate"></div>
+            <div><label>Groupe entrant</label><select id="oGroupe"><option>G1</option><option>G2</option><option>G3</option></select></div>
+            <div id="wrapGroupeSortant"><label>Groupe sortant</label><select id="oGroupe2"><option>G1</option><option>G2</option><option selected>G3</option></select></div>
+          </div>
+          <div id="opsRemise">
+            <div class="sec">REMISE <span>2 heures obligatoires</span></div>
+            <div class="grid2">
+              <div><label>1. Démarrage — Heure *</label><input type="time" id="oRem1"></div>
+              <div><label>2. Enclenchement disjoncteur — Heure *</label><input type="time" id="oRem2"></div>
+            </div>
+          </div>
+          <div id="opsCouplage" class="hidden">
+            <div class="sec">COUPLAGE <span>Heures exactes</span></div>
+            <div class="grid2">
+              <div><label>Heure Démarrage *</label><input type="time" id="oCoup1"></div>
+              <div><label>Heure Couplage *</label><input type="time" id="oCoup2"></div>
+            </div>
+          </div>
+          <div id="opsPermut" class="hidden">
+            <div class="sec">PERMUTATION <span>4 heures</span></div>
+            <div class="grid2">
+              <div><label>1. Démarrage entrant *</label><input type="time" id="oPerm1"></div>
+              <div><label>2. Couplage *</label><input type="time" id="oPerm2"></div>
+              <div><label>3. Découplage sortant *</label><input type="time" id="oPerm3"></div>
+              <div><label>4. Arrêt moteur sortant *</label><input type="time" id="oPerm4"></div>
+            </div>
+          </div>
+          <label data-i18n="obs">Observations</label>
+          <textarea id="oObs"></textarea>
+          <button type="button" class="btn btn-yellow btn-full mt-12" id="btnSaveOp"><span data-i18n="save_op">Enregistrer dans le cahier</span></button>
+        </div>
+        <div class="card"><h2>Historique Opérations</h2><div id="listOps"></div></div>
+      </div>
+
+      <!-- Entretien -->
+      <div id="cat-ent" class="hidden">
+        <div class="card">
+          <h2 data-i18n="ent_title">Travaux & Entretien</h2>
+          <label>Type</label>
+          <select id="eType">
+            <option>Nettoyage du groupe</option><option>Appoint d'huile</option><option>Vidange totale</option><option>Appoint d'eau</option><option>Appoint de gasoil</option><option>Remplacement du filtre à gasoil</option><option>Remplacement du filtre à air</option><option>Remplacement du filtre séparateur</option><option value="Autres">Autres interventions</option>
+          </select>
+          <div id="wrapAutres" class="hidden">
+            <label>Précise le travail *</label>
+            <input type="text" id="eAutres">
+          </div>
+          <div class="grid3">
+            <div><label data-i18n="group">Groupe</label><select id="eGroupe"><option>G1</option><option>G2</option><option>G3</option></select></div>
+            <div><label data-i18n="date">Date</label><input type="date" id="eDate"></div>
+            <div><label>Heure</label><input type="time" id="eHeure"></div>
+          </div>
+          <label data-i18n="obs">Observations</label>
+          <textarea id="eObs"></textarea>
+          <button type="button" class="btn btn-yellow btn-full mt-12" id="btnSaveEnt"><span data-i18n="save_ent">Enregistrer l'intervention</span></button>
+        </div>
+        <div class="card"><h2>Historique Entretien</h2><div id="listEnt"></div></div>
+      </div>
+
+      <!-- Cahier -->
+      <div id="cat-cahier" class="hidden">
+        <div class="card">
+          <h2 data-i18n="cahier_title">Cahier de Passation</h2>
+          <div class="filter-row">
+            <input type="date" id="fCahierDate">
+            <select id="fCahierGroupe"><option value="">Tous groupes</option><option>G1</option><option>G2</option><option>G3</option></select>
+            <select id="fCahierType"><option value="">Tous types</option><option>Relevé</option><option>Appoint</option><option>Opération</option><option>Entretien</option></select>
+          </div>
+          <div class="btn-row mt-10">
+            <button type="button" class="btn btn-black" id="btnPrintCahier"><span data-i18n="print">Imprimer</span></button>
+            <button type="button" class="btn btn-gray" id="btnExportCSV">Exporter CSV</button>
+            <button type="button" class="btn btn-red" id="btnClearCat">Tout effacer</button>
+          </div>
+          <div id="listCahier"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer data-i18n="footer">Henri Fraise Fils & Cie — Mahanoro • Calendrier + CAT - System</footer>
+  </div>
+
+  <!-- ===== MODAL: JOUR ===== -->
+  <div class="modal-overlay" id="dayModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div><h3 id="modalTitle"></h3><p id="modalSubtitle"></p></div>
+        <button type="button" class="modal-close" id="btnCloseModal">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="modalAgents"></div>
+        <div id="modalWorkList"></div>
+        <button type="button" class="btn btn-black btn-full mt-14" id="btnCloseModal2"><span data-i18n="close">Fermer</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: GÉRER UN CONGÉ ===== -->
+  <div class="modal-overlay" id="leaveModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 data-i18n="leave_title">Gérer un congé</h3>
+          <p data-i18n="leave_desc">Si 1 agent est en congé, les 3 autres tournent à 3.</p>
+        </div>
+        <button type="button" class="modal-close" id="btnCloseLeaveModal">×</button>
+      </div>
+      <div class="modal-body">
+        <label data-i18n="leave_agent">Agent en congé</label>
+        <select id="leaveName">
+          <option>Nandrianina</option>
+          <option>Eddy</option>
+          <option>Jimmy</option>
+          <option>Michel</option>
+        </select>
+
+        <div class="grid2">
+          <div>
+            <label data-i18n="leave_start">Date de début</label>
+            <input type="date" id="leaveStart">
+          </div>
+          <div>
+            <label data-i18n="leave_end">Date de fin</label>
+            <input type="date" id="leaveEnd">
+          </div>
+        </div>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+        <button type="button" class="btn btn-yellow btn-full mt-12" id="btnAddLeave">
+          <span data-i18n="add_leave">Ajouter le congé</span>
+        </button>
+
+        <div class="sec mt-14">CONGÉS ENREGISTRÉS <span id="leaveCount">0</span></div>
+        <div id="leaveList"></div>
+
+        <button type="button" class="btn btn-gray btn-full mt-12" id="btnCloseLeaveModal2">
+          <span data-i18n="close">Fermer</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BOTTOM NAV ===== -->
+  <nav class="bottom-nav">
+    <button type="button" id="nav-cal" class="active">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
+      </svg>
+      <span data-i18n="nav_calendar">Calendrier</span>
+    </button>
+    <button type="button" id="nav-cat">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+        <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4"/>
+      </svg>
+      <span>CAT - System</span>
+    </button>
+    <button type="button" id="navPrevBtn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      <span data-i18n="nav_prev">Préc.</span>
+    </button>
+    <button type="button" id="navLeavesBtn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+        <circle cx="12" cy="12" r="3.5"/>
+      </svg>
+      <span data-i18n="nav_leaves">Congés</span>
+      <span class="nav-badge" id="leavesBadge">0</span>
+    </button>
+    <button type="button" id="navNextBtn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+      <span data-i18n="nav_next">Suiv.</span>
+    </button>
+  </nav>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then((reg) => console.log('✅ Service Worker registered:', reg.scope))
+        .catch((err) => console.error('❌ Service Worker error:', err));
+    });
+  }
+</script>
+  <script src="app.js"></script>
+</body>
+</html>

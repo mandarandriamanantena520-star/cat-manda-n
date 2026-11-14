@@ -1,0 +1,24 @@
+{
+  "name": "CAT-System — Henri Fraise Fils & Cie",
+  "short_name": "CAT-System",
+  "description": "Calendrier + CAT-System • Mahanoro",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F4F5F7",
+  "theme_color": "#FFCC11",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://dummyimage.com/192x192/111318/FFCC11.png&text=CAT",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://dummyimage.com/512x512/111318/FFCC11.png&text=CAT",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
