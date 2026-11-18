@@ -2,435 +2,665 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Henri Fraise Fils & Cie - Mahanoro | Calendrier + CAT-System</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111'/%3E%3Ctext x='32' y='42' font-family='Arial' font-size='28' font-weight='900' fill='%23FFCC11' text-anchor='middle'%3ECAT%3C/text%3E%3C/svg%3E">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CAT by Manda v2.0</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#FFCC11">
+  <meta name="theme-color" content="#111318">
+  <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+  <script>window.Dexie||document.write('<script src="https://unpkg.com/dexie@3.2.4/dist/dexie.min.js"><\/script>')</script>
+  <script>window.Dexie||document.write('<script src="dexie-lite.js"><\/script>')</script>
+  <script>
+    window.addEventListener('error', function (e) {
+      var t = e.target; if (t && t.tagName) return; /* fahadisoana rakitra: mandeha ny fallback */
+      var msg = e.message + ' (' + String(e.filename || '').split('/').pop() + ':' + e.lineno + ')';
+      var b = document.getElementById('errBanner');
+      if (!b) { b = document.createElement('div'); b.id = 'errBanner';
+        b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#E5484D;color:#fff;padding:10px 14px;font:600 13px/1.4 Arial,sans-serif;white-space:pre-wrap;';
+        (document.body || document.documentElement).appendChild(b); }
+      b.textContent += '\u26A0 ' + msg + '\n';
+    }, true);
+  </script>
 </head>
 <body>
+
   <!-- ===== HEADER ===== -->
   <header>
     <div class="header-brand">
-      <div class="logo">CAT</div>
-      <div>
-        <h1>Henri Fraise Fils & Cie • Mahanoro</h1>
-        <p data-i18n="header_sub">Calendrier + CAT-System • Groupes Électrogènes</p>
+      <button id="btn-menu-logo" class="logo" title="Menu">
+        <svg viewBox="0 0 100 100" width="100%" height="100%">
+          <rect width="100" height="100" fill="#111318"/>
+          <text x="50" y="65" font-family="Arial" font-size="40" font-weight="900" fill="#FFCC11" text-anchor="middle">CAT</text>
+        </svg>
+      </button>
+      <div class="header-title">
+        <h1 class="brand-title">CAT by Manda</h1>
       </div>
     </div>
     <div class="header-actions">
-      <button type="button" class="btn-header" id="btnOpenLeaves">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <line x1="3" y1="9" x2="21" y2="9"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="9" y1="15" x2="15" y2="15"/>
+      <button id="theme-toggle" class="btn-header-icon" title="Mode Jour/Nuit">
+        <svg id="icon-moon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
-        <span data-i18n="nav_leaves">Congés</span>
-        <span class="nav-badge" id="leavesBadge">0</span>
+        <svg id="icon-sun" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
       </button>
-      <div class="lang">
-        <button type="button" id="btnFR" class="active">Français</button>
-        <button type="button" id="btnMG">Malagasy</button>
-      </div>
     </div>
   </header>
 
+  <!-- ===== SIDE MENU ===== -->
+  <div class="side-menu-overlay" id="sideMenuOverlay"></div>
+  <aside class="side-menu" id="sideMenu">
+    <div class="side-menu-header">
+      <h3>Menu</h3>
+      <button class="side-menu-close" id="btnCloseSideMenu">×</button>
+    </div>
+    <div class="side-menu-body">
+      <form class="menu-search" id="menuSearchForm" autocomplete="off">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="search" id="menuSearch" placeholder="Rechercher (date, groupe, travail…)" enterkeyhint="search">
+      </form>
+      <button class="side-menu-item" onclick="goToPage('page-releve')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+        Relevés
+      </button>
+      <button class="side-menu-item" onclick="goToPage('page-passation')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+        passation 
+      </button>
+      <button class="side-menu-item" onclick="goToPage('page-travaux')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+        Travaux
+      </button>
+      <button class="side-menu-item" onclick="goToPage('page-calendrier')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        Calendrier
+      </button>
+      <button class="side-menu-item" onclick="goToPage('page-fiche')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Fiche d'Exploitation
+      </button>
+      <button class="side-menu-item" onclick="goToPage('page-chef')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        Espace Chef
+      </button>
+      
+      <div class="side-menu-divider"></div>
+      
+      <button class="side-menu-item" onclick="openSettingsModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Paramètres (Sauvegarde, Style)
+      </button>
+      <button class="side-menu-item" onclick="openHistoryModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Historique global
+      </button>
+      <button class="side-menu-item" onclick="shareApp()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        Partager l'App
+      </button>
+      
+      <div class="side-menu-divider"></div>
+      
+      <button class="side-menu-item" onclick="openAboutModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        À propos
+      </button>
+    </div>
+  </aside>
+
   <div class="container">
-    <!-- ===== MAIN TABS ===== -->
-    <div class="main-tabs">
-      <button type="button" id="mainBtn-cal" class="active">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <line x1="3" y1="9" x2="21" y2="9"/>
-        </svg>
-        <span data-i18n="tab_cal">Calendrier</span>
-      </button>
-      <button type="button" id="mainBtn-cat">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M16.9 16.9l2.8 2.8"/>
-        </svg>
-        <span>CAT - System</span>
-      </button>
-    </div>
+    <!-- ================= PAGE 1 : RELEVÉS ================= -->
+    <div id="page-releve" class="page active">
+      <div class="card">
+        <h2>Nouveau Relevé Horaire</h2>
+        <div class="grid3">
+          <div>
+            <label>Groupe</label>
+            <select id="r-groupe">
+              <option value="G1">G1</option>
+              <option value="G2">G2</option>
+              <option value="G3">G3</option>
+            </select>
+          </div>
+          <div><label>Date</label><input type="date" id="r-date"></div>
+          <div><label>Heure</label><input type="time" id="r-heure"></div>
+        </div>
+        
+        <div class="sec">ALTERNATEUR</div>
+        <div class="grid3">
+          <div><label>Tension (V)</label><input type="number" id="r-tension"></div>
+          <div><label>Intensité (kA)</label><input type="number" step="0.01" id="r-intensite"></div>
+          <div><label>Fréquence (Hz)</label><input type="number" step="0.1" id="r-frequence"></div>
+          <div><label>Cos φ</label><input type="number" step="0.01" id="r-cos"></div>
+          <div><label>Puissance (MW)</label><input type="number" step="0.01" id="r-puissance"></div>
+          <div><label>Énergie (kWh)</label><input type="number" id="r-energie"></div>
+        </div>
 
-    <!-- ===== CALENDRIER (PLEINE LARGEUR) ===== -->
-    <div id="main-cal">
-      <div class="view-toggle">
-        <button type="button" id="btnGrid" class="active"><span data-i18n="view_grid">Grille</span></button>
-        <button type="button" id="btnList"><span data-i18n="view_list">Liste</span></button>
+        <div class="sec">MOTEUR</div>
+        <div class="grid3">
+          <div><label>Pression huile (kPa)</label><input type="number" id="r-press-huile"></div>
+          <div><label>Temp. eau (°C)</label><input type="number" id="r-temp-eau"></div>
+          <div id="wrap-temp-huile" class="hidden">
+            <label>Temp. huile (°C) - G3</label>
+            <input type="number" id="r-temp-huile">
+          </div>
+          <div>
+            <label>Transfo / Batterie</label>
+            <select id="r-transfo">
+              <option value="Aucun">Aucun</option>
+              <option value="Transfo">Transfo</option>
+              <option value="Batterie">Batterie</option>
+            </select>
+          </div>
+          <div><label>RPM (tr/min)</label><input type="number" id="r-rpm"></div>
+          <div><label>Heure marche (h)</label><input type="number" step="0.1" id="r-heure-marche"></div>
+          <div><label>Pression gasoil (kPa)</label><input type="number" id="r-press-gasoil"></div>
+          <div><label>Air ADM (°C)</label><input type="number" id="r-air-adm"></div>
+        </div>
+
+        <div class="sec">JAUGEAGE GASOIL</div>
+        <div class="grid2">
+          <div><label>Gasoil (mm)</label><input type="number" id="r-gasoil-mm"></div>
+          <div><label>Gasoil (Litres)</label><input type="text" id="r-gasoil-litres" readonly></div>
+        </div>
+
+        <button class="btn btn-yellow btn-full mt-14" id="btn-save-releve">Enregistrer le relevé</button>
       </div>
 
-      <div class="card cal-toolbar">
-        <div class="cal-nav">
-          <button type="button" class="btn btn-black" id="btnCalPrev"><span data-i18n="prev">Précédent</span></button>
-          <button type="button" class="btn btn-yellow" id="btnCalToday"><span data-i18n="today">Aujourd'hui</span></button>
-          <button type="button" class="btn btn-black" id="btnCalNext"><span data-i18n="next">Suivant</span></button>
-          <select id="yearSelect"></select>
-          <select id="monthSelect"></select>
-        </div>
-        <div class="cal-filters">
-          <label data-i18n="my_planning">Mon planning :</label>
-          <select id="meSelect">
-            <option value="Tous" data-i18n="all_agents">Tous les agents</option>
-            <option value="Nandrianina" selected>Nandrianina</option>
-            <option value="Eddy">Eddy</option>
-            <option value="Jimmy">Jimmy</option>
-            <option value="Michel">Michel</option>
+      <div class="card">
+        <h2>Tableau Récapitulatif</h2>
+        <div class="filter-row">
+          <select id="filter-groupe">
+            <option value="G1">G1</option>
+            <option value="G2">G2</option>
+            <option value="G3">G3</option>
           </select>
-          <button type="button" class="btn btn-gray" id="btnPrintCal"><span data-i18n="print">Imprimer</span></button>
+          <button class="btn btn-black" id="btn-export-releves" style="padding:8px 12px; font-size:12px; margin-top:8px;">Export CSV</button>
         </div>
-      </div>
-
-      <div class="legend">
-        <span data-i18n="legend_day">Jour 7h - 17h</span>
-        <span data-i18n="legend_night">Nuit 17h - 7h</span>
-        <span data-i18n="legend_click">Cliquez sur un jour pour voir le détail</span>
-      </div>
-
-      <!-- Calendrier pleine largeur -->
-      <div class="cal-card" id="calendarSection">
-        <div class="cal-head">
-          <h2><span id="titleMonth"></span></h2>
-          <span id="titleInfo"></span>
-        </div>
-        <div class="weekdays" id="weekdaysRow"></div>
-        <div id="calendar"></div>
-        <div class="list-view" id="listView"></div>
-      </div>
-    </div>
-
-    <!-- ===== CAT SYSTEM ===== -->
-    <div id="main-cat" class="hidden">
-      <div class="top-stats">
-        <div class="stat"><span data-i18n="cat_releves">Relevés</span><strong id="sReleve">0</strong></div>
-        <div class="stat"><span data-i18n="cat_appoints">Appoints</span><strong id="sAppoint">0</strong></div>
-        <div class="stat"><span data-i18n="cat_ops">Opérations</span><strong id="sOps">0</strong></div>
-        <div class="stat"><span data-i18n="cat_ent">Entretiens</span><strong id="sEnt">0</strong></div>
-      </div>
-
-      <div class="sub-tabs">
-        <button type="button" id="catBtn-releve" class="active"><span data-i18n="cat_tab_releve">Relevé</span></button>
-        <button type="button" id="catBtn-jauge"><span data-i18n="cat_tab_jauge">Jaugeage</span></button>
-        <button type="button" id="catBtn-appoint"><span data-i18n="cat_tab_appoint">Appoint</span></button>
-        <button type="button" id="catBtn-ops"><span data-i18n="cat_tab_ops">Opérations</span></button>
-        <button type="button" id="catBtn-ent"><span data-i18n="cat_tab_ent">Entretien</span></button>
-        <button type="button" id="catBtn-cahier"><span data-i18n="cat_tab_cahier">Cahier</span></button>
-      </div>
-
-      <!-- Relevé -->
-      <div id="cat-releve">
-        <div class="card">
-          <h2 data-i18n="releve_title">Relevé Paramètres — Fiche Officielle</h2>
-          <p data-i18n="releve_desc">Température d'huile = G3 uniquement. Gasoil mm → Litres auto via barèmage C16.</p>
-          <div class="grid3">
-            <div><label data-i18n="group">Groupe</label><select id="rGroupe"><option>G1</option><option>G2</option><option selected>G3</option></select></div>
-            <div><label data-i18n="date">Date</label><input type="date" id="rDate"></div>
-            <div><label data-i18n="hour_read">Heure de lecture</label><select id="rHeure"><option>06:00</option><option>07:00</option><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option><option>18:00</option><option>18:30</option><option>19:00</option><option>19:30</option><option>20:00</option><option>20:30</option><option>21:00</option><option>22:00</option><option>23:00</option><option>00:00</option><option>01:00</option><option>02:00</option><option>03:00</option><option>04:00</option><option>05:00</option></select></div>
-          </div>
-          <div class="grid2">
-            <div><label data-i18n="agent">Agent</label><select id="rAgent"><option>Nandrianina</option><option>Eddy</option><option>Jimmy</option><option>Michel</option></select></div>
-            <div><label>Pmax</label><input type="text" id="rPmax"></div>
-          </div>
-
-          <div class="sec">ALTERNATEUR <span>CAT</span></div>
-          <div class="grid3">
-            <div><label>Puissance — MW</label><input type="number" step="0.01" id="rPuiss"></div>
-            <div><label>Tension — V</label><input type="number" id="rTension"></div>
-            <div><label>Intensité — KA</label><input type="number" step="0.01" id="rIntens"></div>
-            <div><label>Cos</label><input type="number" step="0.01" id="rCos"></div>
-            <div><label>RPM — T/m</label><input type="number" id="rRpm"></div>
-            <div><label>Fréquence — Hz</label><input type="number" step="0.1" id="rFreq"></div>
-          </div>
-
-          <div class="sec">MOTEUR — TEMPÉRATURE °C <span>°C</span></div>
-          <div class="grid3">
-            <div><label>Température Eau — °C</label><input type="number" id="rTempEau"></div>
-            <div id="wrapTempHuile"><label>Température Huile — °C (G3)</label><input type="number" id="rTempHuile"></div>
-            <div><label>Air ADM — °C</label><input type="number" id="rAirAdm"></div>
-            <div><label>Échappement G — °C</label><input type="number" id="rEchapG"></div>
-            <div><label>Échappement D — °C</label><input type="number" id="rEchapD"></div>
-          </div>
-
-          <div class="sec">MOTEUR — PRESSION KPA <span>KPA</span></div>
-          <div class="grid3">
-            <div><label>Pression Huile — KPA</label><input type="number" id="rPressHuile"></div>
-            <div><label>Pression Gas oil — KPA</label><input type="number" id="rPressGas"></div>
-            <div><label>P. Huile #</label><input type="text" id="rPHuile"></div>
-            <div><label>Pr. Gas oil #</label><input type="text" id="rPGas"></div>
-            <div><label>Filt air G — KPA</label><input type="number" id="rFiltG"></div>
-            <div><label>Filt air D — KPA</label><input type="number" id="rFiltD"></div>
-          </div>
-
-          <div class="sec">COMPTEUR <span>KWh / Litre / Hrs</span></div>
-          <div class="grid3">
-            <div><label>Énergie — KWh</label><input type="number" id="rEnergie"></div>
-            <div><label>Gas oil — mm</label><input type="number" id="rGasMm" placeholder="Ex: 215"></div>
-            <div><label>Gas oil — Litres (auto)</label><input type="text" id="rGasL" readonly></div>
-            <div><label>Heure Marche — Hrs</label><input type="number" id="rHeureMarche"></div>
-            <div><label>CT — cm</label><select id="rCT"></select></div>
-            <div><label data-i18n="obs">Observations</label><input type="text" id="rObs"></div>
-          </div>
-          <div class="result" id="releveResult">215 mm = 834,95 L</div>
-          <button type="button" class="btn btn-yellow btn-full mt-12" id="btnSaveReleve"><span data-i18n="save_releve">Enregistrer le relevé</span></button>
-        </div>
-        <div class="card">
-          <h2 data-i18n="hist_releve">Historique Relevés</h2>
-          <div class="filter-row">
-            <select id="fReleveGroupe"><option value="">Tous groupes</option><option>G1</option><option>G2</option><option>G3</option></select>
-            <input type="date" id="fReleveDate">
-          </div>
-          <div id="listReleve"></div>
-        </div>
-      </div>
-
-      <!-- Jauge -->
-      <div id="cat-jauge" class="hidden">
-        <div class="card">
-          <h2 data-i18n="jauge_title">Conversion Jaugeage — C16 Mahanoro</h2>
-          <p data-i18n="jauge_desc">Saisis la hauteur en mm (50 à 229 mm). Valeurs exactes du certificat.</p>
-          <div class="grid2">
-            <div><label>Hauteur mm</label><input type="number" id="jMm" placeholder="Ex: 215"></div>
-            <div><label>Litres</label><input type="text" id="jLitres" readonly></div>
-          </div>
-          <div class="result" id="jaugeResult">215 mm → 834,95 L</div>
-          <div class="btn-row mt-10">
-            <button type="button" class="btn btn-black" id="btnJauge215">Tester 215 mm</button>
-            <button type="button" class="btn btn-gray" id="btnJauge100">Tester 100 mm</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Appoint -->
-      <div id="cat-appoint" class="hidden">
-        <div class="card">
-          <h2 data-i18n="appoint_title">Appoint Gasoil + Cuve Tampon</h2>
-          <div class="sec">A. GROUPE <span>G1 / G2 / G3</span></div>
-          <div class="grid3">
-            <div><label data-i18n="group">Groupe</label><select id="aGroupe"><option>G1</option><option>G2</option><option>G3</option></select></div>
-            <div><label data-i18n="date">Date</label><input type="date" id="aDate"></div>
-            <div><label data-i18n="state">État du groupe</label><select id="aEtat"><option>En marche (en service)</option><option>À l'arrêt (hors service)</option></select></div>
-            <div><label>Heure jaugeage avant</label><input type="time" id="aHeureAvant"></div>
-            <div><label>Niveau avant — mm</label><input type="number" id="aMmAvant"></div>
-            <div><label>Niveau avant — Litres</label><input type="text" id="aLAvant" readonly></div>
-          </div>
-          <div class="sec">B. APPROVISIONNEMENT <span>Heures + Quantité</span></div>
-          <div class="grid3">
-            <div><label>Heure début</label><input type="time" id="aHeureDebut"></div>
-            <div><label>Heure fin</label><input type="time" id="aHeureFin"></div>
-            <div><label>Quantité ajoutée — L</label><input type="number" id="aQte"></div>
-            <div><label>Niveau après — mm</label><input type="number" id="aMmApres"></div>
-            <div><label>Niveau après — Litres</label><input type="text" id="aLApres" readonly></div>
-            <div><label data-i18n="agent">Agent</label><select id="aAgent"><option>Nandrianina</option><option>Eddy</option><option>Jimmy</option><option>Michel</option></select></div>
-          </div>
-          <div class="sec">C. CUVE TAMPON CT <span>400 à 2400 cm</span></div>
-          <div class="grid2">
-            <div><label>CT avant — cm</label><select id="aCTAvant"></select></div>
-            <div><label>CT après — cm</label><select id="aCTApres"></select></div>
-          </div>
-          <label data-i18n="obs">Observations</label>
-          <textarea id="aObs"></textarea>
-          <div class="result" id="appointResult">Remplis les niveaux.</div>
-          <button type="button" class="btn btn-yellow btn-full mt-12" id="btnSaveAppoint"><span data-i18n="save_appoint">Enregistrer l'appoint</span></button>
-        </div>
-        <div class="card"><h2>Historique Appoints</h2><div id="listAppoint"></div></div>
-      </div>
-
-      <!-- Opérations -->
-      <div id="cat-ops" class="hidden">
-        <div class="card">
-          <h2 data-i18n="ops_title">Opérations — Remise / Couplage / Permutation</h2>
-          <p data-i18n="ops_desc">Remise : 2 heures obligatoires. Couplage / Permutation : heure exacte pour chaque action.</p>
-          <label>Type</label>
-          <select id="oType"><option value="Remise">Remise</option><option value="Couplage">Couplage</option><option value="Permutation">Permutation</option></select>
-          <div class="grid3">
-            <div><label data-i18n="date">Date</label><input type="date" id="oDate"></div>
-            <div><label>Groupe entrant</label><select id="oGroupe"><option>G1</option><option>G2</option><option>G3</option></select></div>
-            <div id="wrapGroupeSortant"><label>Groupe sortant</label><select id="oGroupe2"><option>G1</option><option>G2</option><option selected>G3</option></select></div>
-          </div>
-          <div id="opsRemise">
-            <div class="sec">REMISE <span>2 heures obligatoires</span></div>
-            <div class="grid2">
-              <div><label>1. Démarrage — Heure *</label><input type="time" id="oRem1"></div>
-              <div><label>2. Enclenchement disjoncteur — Heure *</label><input type="time" id="oRem2"></div>
-            </div>
-          </div>
-          <div id="opsCouplage" class="hidden">
-            <div class="sec">COUPLAGE <span>Heures exactes</span></div>
-            <div class="grid2">
-              <div><label>Heure Démarrage *</label><input type="time" id="oCoup1"></div>
-              <div><label>Heure Couplage *</label><input type="time" id="oCoup2"></div>
-            </div>
-          </div>
-          <div id="opsPermut" class="hidden">
-            <div class="sec">PERMUTATION <span>4 heures</span></div>
-            <div class="grid2">
-              <div><label>1. Démarrage entrant *</label><input type="time" id="oPerm1"></div>
-              <div><label>2. Couplage *</label><input type="time" id="oPerm2"></div>
-              <div><label>3. Découplage sortant *</label><input type="time" id="oPerm3"></div>
-              <div><label>4. Arrêt moteur sortant *</label><input type="time" id="oPerm4"></div>
-            </div>
-          </div>
-          <label data-i18n="obs">Observations</label>
-          <textarea id="oObs"></textarea>
-          <button type="button" class="btn btn-yellow btn-full mt-12" id="btnSaveOp"><span data-i18n="save_op">Enregistrer dans le cahier</span></button>
-        </div>
-        <div class="card"><h2>Historique Opérations</h2><div id="listOps"></div></div>
-      </div>
-
-      <!-- Entretien -->
-      <div id="cat-ent" class="hidden">
-        <div class="card">
-          <h2 data-i18n="ent_title">Travaux & Entretien</h2>
-          <label>Type</label>
-          <select id="eType">
-            <option>Nettoyage du groupe</option><option>Appoint d'huile</option><option>Vidange totale</option><option>Appoint d'eau</option><option>Appoint de gasoil</option><option>Remplacement du filtre à gasoil</option><option>Remplacement du filtre à air</option><option>Remplacement du filtre séparateur</option><option value="Autres">Autres interventions</option>
-          </select>
-          <div id="wrapAutres" class="hidden">
-            <label>Précise le travail *</label>
-            <input type="text" id="eAutres">
-          </div>
-          <div class="grid3">
-            <div><label data-i18n="group">Groupe</label><select id="eGroupe"><option>G1</option><option>G2</option><option>G3</option></select></div>
-            <div><label data-i18n="date">Date</label><input type="date" id="eDate"></div>
-            <div><label>Heure</label><input type="time" id="eHeure"></div>
-          </div>
-          <label data-i18n="obs">Observations</label>
-          <textarea id="eObs"></textarea>
-          <button type="button" class="btn btn-yellow btn-full mt-12" id="btnSaveEnt"><span data-i18n="save_ent">Enregistrer l'intervention</span></button>
-        </div>
-        <div class="card"><h2>Historique Entretien</h2><div id="listEnt"></div></div>
-      </div>
-
-      <!-- Cahier -->
-      <div id="cat-cahier" class="hidden">
-        <div class="card">
-          <h2 data-i18n="cahier_title">Cahier de Passation</h2>
-          <div class="filter-row">
-            <input type="date" id="fCahierDate">
-            <select id="fCahierGroupe"><option value="">Tous groupes</option><option>G1</option><option>G2</option><option>G3</option></select>
-            <select id="fCahierType"><option value="">Tous types</option><option>Relevé</option><option>Appoint</option><option>Opération</option><option>Entretien</option></select>
-          </div>
-          <div class="btn-row mt-10">
-            <button type="button" class="btn btn-black" id="btnPrintCahier"><span data-i18n="print">Imprimer</span></button>
-            <button type="button" class="btn btn-gray" id="btnExportCSV">Exporter CSV</button>
-            <button type="button" class="btn btn-red" id="btnClearCat">Tout effacer</button>
-          </div>
-          <div id="listCahier"></div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Puiss.</th><th>Tens.</th><th>Intens.</th><th>Cos</th><th>RPM</th><th>Fréq.</th>
+                <th>T° Eau</th><th class="col-g3">T° Huile</th><th>Transfo</th><th>P. Huile</th>
+                <th>P. Gasoil</th><th>Énergie</th><th>Gasoil</th><th>H. Marche</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-releves"></tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <footer data-i18n="footer">Henri Fraise Fils & Cie — Mahanoro • Calendrier + CAT - System</footer>
+    <!-- ================= PAGE 2 : PASSATION ================= -->
+    <div id="page-passation" class="page">
+      <div class="card">
+        <h2>Appoint Gasoil</h2>
+        <div class="grid2">
+          <div>
+            <label>Groupe</label>
+            <select id="ap-groupe">
+              <option value="G1">G1</option>
+              <option value="G2">G2</option>
+              <option value="G3">G3</option>
+            </select>
+          </div>
+          <div>
+            <label>Date</label>
+            <input type="date" id="ap-date">
+          </div>
+        </div>
+
+        <label>État du groupe (pendant l'appoint)</label>
+        <select id="ap-etat">
+          <option value="En marche">En marche (en service)</option>
+          <option value="À l'arrêt">À l'arrêt (hors service)</option>
+        </select>
+
+        <div class="sec">Chronomètre de l'opération</div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+          <div style="flex:1; text-align:center; background:var(--bg); padding:15px; border-radius:8px; border:1px solid var(--border);">
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Durée</div>
+            <div id="chrono-display" style="font-size:24px; font-weight:800; font-family:monospace; color:var(--primary);">00:00</div>
+          </div>
+        </div>
+        <div class="grid2">
+          <button type="button" class="btn btn-yellow" id="btn-start-chrono">Démarrer</button>
+          <button type="button" class="btn btn-black" id="btn-stop-chrono" disabled>Arrêter</button>
+        </div>
+
+        <div class="sec">Heures d'opération</div>
+        <div class="grid2">
+          <div><label>Heure AVANT</label><input type="time" id="ap-heure-av"></div>
+          <div><label>Heure APRÈS</label><input type="time" id="ap-heure-ap"></div>
+        </div>
+
+        <div class="sec">Niveaux Groupe (Gasoil)</div>
+        <div class="grid2">
+          <div><label>Niveau AVANT (mm)</label><input type="number" id="ap-av-mm"></div>
+          <div><label>Niveau APRÈS (mm)</label><input type="number" id="ap-ap-mm"></div>
+        </div>
+        <div class="result" style="font-size:14px; padding:12px; margin-top:10px; background:var(--surface); border:1px dashed var(--border);">
+          Quantité ajoutée (auto) : <b id="ap-qte">0</b> Litres
+        </div>
+
+        <div class="sec">Niveaux Cuve T (CT)</div>
+        <div class="grid2">
+          <div><label>CT AVANT (cm)</label><select id="ap-ct-av"></select></div>
+          <div><label>CT APRÈS (cm)</label><select id="ap-ct-ap"></select></div>
+        </div>
+        <div class="result" style="font-size:14px; padding:12px; margin-top:10px; background:var(--surface); border:1px dashed var(--border);">
+          Différence CT (auto) : <b id="ap-ct-diff">0</b> cm
+        </div>
+
+        <label style="margin-top:15px;">Observations</label>
+        <textarea id="ap-obs"></textarea>
+
+        <button class="btn btn-yellow btn-full mt-14" id="btn-save-appoint">Enregistrer l'Appoint</button>
+      </div>
+
+      <div class="card">
+        <h2>Transfert GO vers CT</h2>
+        <div class="grid2">
+          <div>
+            <label>Date</label>
+            <input type="date" id="tr-date">
+          </div>
+          <div>
+            <label>Heure</label>
+            <input type="time" id="tr-heure">
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div><label>CT AVANT (cm)</label><select id="tr-ct-av"></select></div>
+          <div><label>CT APRÈS (cm)</label><select id="tr-ct-ap"></select></div>
+        </div>
+        <div class="result" style="font-size:14px; padding:12px; margin-top:10px; background:var(--surface); border:1px dashed var(--border);">
+          Quantité transférée (auto) : <b id="tr-qte">0</b> cm
+        </div>
+
+        <div class="sec">Compteur (Saisie exacte)</div>
+        <div class="grid2">
+          <div><label>Valeur du compteur</label><input type="number" id="tr-compteur-valeur"></div>
+          <div><label>Total ou E du compteur</label><input type="text" id="tr-compteur-total"></div>
+        </div>
+
+        <label style="margin-top:15px;">Observations</label>
+        <textarea id="tr-obs"></textarea>
+
+        <button class="btn btn-black btn-full mt-14" id="btn-save-transfert">Enregistrer le Transfert</button>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h2 style="margin:0;">Historique des Appoints</h2>
+          <button class="btn btn-black" id="btn-clear-appoints" style="padding:6px 10px; font-size:12px;">Tout effacer</button>
+        </div>
+        <div id="list-appoints" style="font-size:14px; margin-top:10px;"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h2 style="margin:0;">Historique des Transferts</h2>
+          <button class="btn btn-black" id="btn-clear-transferts" style="padding:6px 10px; font-size:12px;">Tout effacer</button>
+        </div>
+        <div id="list-transferts" style="font-size:14px; margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 3 : TRAVAUX ================= -->
+    <div id="page-travaux" class="page">
+      <div class="card">
+        <h2>Nouveau Travail</h2>
+        
+        <div class="grid2">
+          <div>
+            <label>Date</label>
+            <input type="date" id="tw-date">
+          </div>
+          <div>
+            <label>Groupe</label>
+            <select id="tw-groupe">
+              <option value="G1">G1</option>
+              <option value="G2">G2</option>
+              <option value="G3">G3</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label>Heure de Marche (HM)</label>
+            <input type="number" step="0.1" id="tw-hm" placeholder="Ex: 1500.5">
+          </div>
+          <div>
+            <label>Type de Travail</label>
+            <select id="tw-type">
+              <option value="Appoint d'eau">Appoint d'eau</option>
+              <option value="Appoint d'huile">Appoint d'huile</option>
+              <option value="Remplacement disjoncteur">Remplacement du disjoncteur</option>
+              <option value="Nettoyage du groupe">Nettoyage du groupe</option>
+              <option value="Vidange totale">Vidange totale</option>
+              <option value="Filtre à air">Remplacement Filtre à air</option>
+              <option value="Filtre séparateur">Remplacement Filtre séparateur</option>
+              <option value="Filtre à gasoil">Remplacement Filtre à gasoil</option>
+              <option value="Filtre à huile">Remplacement Filtre à huile</option>
+              <option value="Autres">Autres (Préciser)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label>Référence</label>
+            <input type="text" id="tw-ref" readonly>
+          </div>
+          <div>
+            <label>Quantité</label>
+            <input type="number" id="tw-qte" placeholder="Quantité">
+          </div>
+        </div>
+
+        <div id="tw-extra-fields" class="hidden">
+          <label>Agent / Intervenant</label>
+          <input type="text" id="tw-agent" placeholder="Nom de la personne">
+        </div>
+
+        <button class="btn btn-yellow btn-full mt-14" id="btn-save-travail">Enregistrer le Travail</button>
+      </div>
+
+      <div class="card">
+        <h2>Cahier de Travaux</h2>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Groupe</th>
+                <th>HM</th>
+                <th>Travaux</th>
+                <th>Référence</th>
+                <th>Q/té</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-travaux"></tbody>
+          </table>
+        </div>
+        <button class="btn btn-black btn-full mt-14" id="btn-clear-travaux">Tout effacer</button>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 4 : CALENDRIER ================= -->
+    <div id="page-calendrier" class="page">
+      <div class="card">
+        <h2 style="margin-bottom: 15px;">Calendrier Tour de Quart</h2>
+        
+        <div class="cal-nav" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom: 15px;">
+          <button class="btn btn-black" id="btnCalPrev" style="padding:8px 12px; font-size:14px;">Préc.</button>
+          <button class="btn btn-yellow" id="btnCalToday" style="padding:8px 12px; font-size:14px;">Aujourd'hui</button>
+          <button class="btn btn-black" id="btnCalNext" style="padding:8px 12px; font-size:14px;">Suiv.</button>
+          <select id="yearSelect" style="width:auto; font-size:14px; padding:8px;"></select>
+          <select id="monthSelect" style="width:auto; font-size:14px; padding:8px;"></select>
+        </div>
+        
+        <div class="cal-card" style="margin-top: 10px; overflow-x:auto;">
+          <div class="weekdays" id="weekdaysRow" style="display:grid; grid-template-columns: repeat(7, 1fr); text-align:center; padding: 8px 0; font-weight:bold; font-size:13px; color:var(--text-muted);"></div>
+          <div id="calendar" style="display:grid; grid-template-columns: repeat(7, 1fr); gap: 6px;"></div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+          <button class="btn btn-yellow" id="btnOpenLeaves" style="padding: 10px 16px; font-size: 14px; display: flex; align-items: center; gap: 8px; border-radius: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="3" y1="9" x2="21" y2="9"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+            Gérer les Congés
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 5 : FICHE D'EXPLOITATION ================= -->
+    <div id="page-fiche" class="page fiche-page"></div>
+    <div id="page-chef" class="page"></div>
   </div>
 
-  <!-- ===== MODAL: JOUR ===== -->
+  <!-- ================= MODALS ================= -->
   <div class="modal-overlay" id="dayModal">
     <div class="modal">
       <div class="modal-head">
-        <div><h3 id="modalTitle"></h3><p id="modalSubtitle"></p></div>
+        <div><h3 id="modalTitle" style="font-size:20px;"></h3><p id="modalSubtitle" style="font-size:14px;"></p></div>
         <button type="button" class="modal-close" id="btnCloseModal">×</button>
       </div>
       <div class="modal-body">
         <div id="modalAgents"></div>
-        <div id="modalWorkList"></div>
-        <button type="button" class="btn btn-black btn-full mt-14" id="btnCloseModal2"><span data-i18n="close">Fermer</span></button>
+        <button type="button" class="btn btn-black btn-full mt-14" id="btnCloseModal2">Fermer</button>
       </div>
     </div>
   </div>
 
-  <!-- ===== MODAL: GÉRER UN CONGÉ ===== -->
   <div class="modal-overlay" id="leaveModal">
     <div class="modal">
       <div class="modal-head">
         <div>
-          <h3 data-i18n="leave_title">Gérer un congé</h3>
-          <p data-i18n="leave_desc">Si 1 agent est en congé, les 3 autres tournent à 3.</p>
+          <h3 style="font-size:20px;">Gérer un congé</h3>
+          <p style="font-size:14px;">Si 1 agent est en congé, les 3 autres tournent à 3.</p>
         </div>
         <button type="button" class="modal-close" id="btnCloseLeaveModal">×</button>
       </div>
       <div class="modal-body">
-        <label data-i18n="leave_agent">Agent en congé</label>
-        <select id="leaveName">
+        <label style="font-size:14px;">Agent en congé</label>
+        <select id="leaveName" style="font-size:16px;">
           <option>Nandrianina</option>
           <option>Eddy</option>
           <option>Jimmy</option>
           <option>Michel</option>
         </select>
 
-        <div class="grid2">
+        <div class="grid2 mt-14">
           <div>
-            <label data-i18n="leave_start">Date de début</label>
-            <input type="date" id="leaveStart">
+            <label style="font-size:14px;">Date de début</label>
+            <input type="date" id="leaveStart" style="font-size:16px;">
           </div>
           <div>
-            <label data-i18n="leave_end">Date de fin</label>
-            <input type="date" id="leaveEnd">
+            <label style="font-size:14px;">Date de fin</label>
+            <input type="date" id="leaveEnd" style="font-size:16px;">
           </div>
         </div>
 
-        <div class="error-msg" id="errorMsg"></div>
+        <button type="button" class="btn btn-yellow btn-full mt-14" id="btnAddLeave" style="font-size:16px;">Ajouter le congé</button>
 
-        <button type="button" class="btn btn-yellow btn-full mt-12" id="btnAddLeave">
-          <span data-i18n="add_leave">Ajouter le congé</span>
-        </button>
-
-        <div class="sec mt-14">CONGÉS ENREGISTRÉS <span id="leaveCount">0</span></div>
+        <div class="sec mt-14" style="font-size:14px;">CONGÉS ENREGISTRÉS</div>
         <div id="leaveList"></div>
 
-        <button type="button" class="btn btn-gray btn-full mt-12" id="btnCloseLeaveModal2">
-          <span data-i18n="close">Fermer</span>
-        </button>
+        <button type="button" class="btn btn-black btn-full mt-14" id="btnCloseLeaveModal2">Fermer</button>
       </div>
     </div>
   </div>
 
-  <!-- ===== BOTTOM NAV ===== -->
+  <div class="modal-overlay" id="detailsModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 id="detailsModalTitle" style="font-size:20px;">Détails</h3>
+          <p id="detailsModalSubtitle" style="font-size:14px;"></p>
+        </div>
+        <button type="button" class="modal-close" id="btnCloseDetailsModal">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="detailsModalContent"></div>
+        
+        <div id="detailsActions" style="display:flex; gap:10px; margin-top:20px;">
+          <button type="button" class="btn btn-yellow" id="btnEditItem" style="flex:1;">Modifier</button>
+          <button type="button" class="btn btn-black" id="btnDeleteItem" style="flex:1; background:#E5484D;">Supprimer</button>
+        </div>
+
+        <button type="button" class="btn btn-black btn-full mt-14" id="btnCloseDetailsModal2">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: PARAMÈTRES ===== -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 style="font-size:20px;">Paramètres</h3>
+          <p style="font-size:14px;">Sauvegarde & Style</p>
+        </div>
+        <button type="button" class="modal-close" onclick="document.getElementById('settingsModal').classList.remove('open'); document.body.style.overflow = '';">×</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="sec">SAUVEGARDE DES DONNÉES</div>
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom:10px;">Exporter toutes les données pour les sécuriser, ou importer un fichier de sauvegarde.</p>
+        <div class="grid2">
+          <button class="btn btn-yellow" onclick="exportData()" style="width:100%;">Exporter (JSON)</button>
+          <button class="btn btn-black" onclick="document.getElementById('importFile').click()" style="width:100%;">Importer</button>
+        </div>
+        <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
+
+        <div class="sec">THÈME</div>
+        <div class="grid2">
+          <button class="btn btn-yellow" onclick="setTheme('light')" style="width:100%;">Mode Jour</button>
+          <button class="btn btn-black" onclick="setTheme('dark')" style="width:100%;">Mode Nuit</button>
+        </div>
+
+        <div class="sec">COULEUR D'ACCENT</div>
+        <div class="color-picker-grid">
+          <button class="color-btn" style="background: #FFCC11;" onclick="setAccent('#FFCC11')" title="Mavo"></button>
+          <button class="color-btn" style="background: #E5484D;" onclick="setAccent('#E5484D')" title="Mena"></button>
+          <button class="color-btn" style="background: #18A957;" onclick="setAccent('#18A957')" title="Maintso"></button>
+          <button class="color-btn" style="background: #3B82F6;" onclick="setAccent('#3B82F6')" title="Manga"></button>
+          <button class="color-btn" style="background: #8B5CF6;" onclick="setAccent('#8B5CF6')" title="Volomparasy"></button>
+          <button class="color-btn" style="background: #F97316;" onclick="setAccent('#F97316')" title="Oranjy"></button>
+        </div>
+        <button class="btn btn-black btn-full mt-14" onclick="setAccent('#FFCC11')">Réinitialiser</button>
+
+        <button class="btn btn-black btn-full mt-14" onclick="document.getElementById('settingsModal').classList.remove('open'); document.body.style.overflow = '';">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: HISTORIQUE (rubriques cliquables → tableau plein écran) ===== -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 style="font-size:20px;">Historique Global</h3>
+          <p style="font-size:14px;">Appuyez sur une rubrique pour ouvrir le tableau en plein écran</p>
+        </div>
+        <button type="button" class="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="historyHome" class="hist-grid">Chargement...</div>
+        <button class="btn btn-black btn-full mt-14" onclick="document.getElementById('historyModal').classList.remove('open'); document.body.style.overflow = '';">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: À PROPOS ===== -->
+  <div class="modal-overlay" id="aboutModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 style="font-size:20px;">À propos</h3>
+          <p style="font-size:14px;">CAT by Manda v2.0</p>
+        </div>
+        <button type="button" class="modal-close" onclick="document.getElementById('aboutModal').classList.remove('open'); document.body.style.overflow = '';">×</button>
+      </div>
+      <div class="modal-body">
+        
+        <div style="text-align:center; margin-bottom: 20px;">
+          <div class="about-logo">CAT</div>
+          <h4 style="font-size: 22px; font-weight: 900; margin: 15px 0 5px;">CAT by Manda v2.0</h4>
+          <p style="color: var(--text-muted); font-size: 14px;">Application de gestion d'exploitation</p>
+        </div>
+        
+        <div class="about-card">
+          <h5 style="font-size: 15px; font-weight: 800; margin-bottom: 8px;">Mombamomba ny Application</h5>
+          <ul style="font-size: 14px; line-height: 1.7; color: var(--text-muted); padding-left: 20px;">
+            <li><b>Mpamorona :</b> Manda (Mpanoratra code)</li>
+            <li><b>Natao ho an'ny :</b> Henri Fraise Fils & Cie - Mahanoro Power System</li>
+            <li><b>Daty nanaovana :</b> Novambra 2026</li>
+            <li><b>Version :</b> 2.0.0 (PWA - Progressive Web App)</li>
+          </ul>
+        </div>
+
+        <div class="about-card">
+          <h5 style="font-size: 15px; font-weight: 800; margin-bottom: 8px;">Tombotsoa azo amin'ny fampiasana</h5>
+          <ul style="font-size: 14px; line-height: 1.7; color: var(--text-muted); padding-left: 20px;">
+            <li><b>Fitehirizana numérique :</b> Tsy mila taratasy intsony, voatahiry ao amin'ny finday ny données rehetra.</li>
+            <li><b>Fikajiana automatique :</b> Ny Bareme C16, CSP, sy ny hafa dia kajy ho azy.</li>
+            <li><b>Miasa offline :</b> Afaka ampiasaina na tsy misy internet (PWA).</li>
+            <li><b>Fitantanana calendrier :</b> Ny tour de quart sy ny congés dia hita mazava tsara.</li>
+          </ul>
+        </div>
+
+        <p style="font-size: 12px; color: var(--text-muted); text-align:center; margin-top: 20px;">© 2026 - Henri Fraise Fils & Cie. Tous droits réservés.</p>
+        
+        <button class="btn btn-black btn-full mt-14" onclick="document.getElementById('aboutModal').classList.remove('open'); document.body.style.overflow = '';">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TABLEAU PLEIN ÉCRAN (historique / recherche) ===== -->
+  <div class="tv-overlay" id="tvOverlay">
+    <div class="tv-head">
+      <button type="button" class="tv-btn" id="tvBack" aria-label="Retour">←</button>
+      <h3 id="tvTitle">Historique</h3>
+      <span class="tv-count" id="tvCount"></span>
+      <button type="button" class="tv-btn" id="tvCsv">CSV</button>
+    </div>
+    <div class="tv-tools"><input type="search" id="tvSearch" placeholder="Rechercher dans le tableau…" autocomplete="off"></div>
+    <div class="tv-body">
+      <table class="tv-table" id="tvTable"><thead></thead><tbody></tbody></table>
+      <div class="tv-more"><button type="button" class="btn btn-black hidden" id="tvMore">Afficher plus</button></div>
+    </div>
+  </div>
+
+  <!-- ===== BOTTOM NAVIGATION BAR ===== -->
   <nav class="bottom-nav">
-    <button type="button" id="nav-cal" class="active">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
-        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
-      </svg>
-      <span data-i18n="nav_calendar">Calendrier</span>
+    <button class="nav-btn active" data-target="page-releve">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+      <span style="font-size:12px;">Relevés</span>
     </button>
-    <button type="button" id="nav-cat">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
-        <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4"/>
-      </svg>
-      <span>CAT - System</span>
+    <button class="nav-btn" data-target="page-passation">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+      <span style="font-size:12px;">Passation</span>
     </button>
-    <button type="button" id="navPrevBtn">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-      <span data-i18n="nav_prev">Préc.</span>
+    <button class="nav-btn" data-target="page-travaux">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+      <span style="font-size:12px;">Travaux</span>
     </button>
-    <button type="button" id="navLeavesBtn">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
-        <circle cx="12" cy="12" r="3.5"/>
-      </svg>
-      <span data-i18n="nav_leaves">Congés</span>
-      <span class="nav-badge" id="leavesBadge">0</span>
+    <button class="nav-btn" data-target="page-calendrier">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      <span style="font-size:12px;">Calendrier</span>
     </button>
-    <button type="button" id="navNextBtn">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-      <span data-i18n="nav_next">Suiv.</span>
+    <button class="nav-btn" data-target="page-fiche">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      <span style="font-size:12px;">Fiche</span>
     </button>
   </nav>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then((reg) => console.log('✅ Service Worker registered:', reg.scope))
-        .catch((err) => console.error('❌ Service Worker error:', err));
-    });
-  }
-</script>
+
+  <script src="icons.js"></script>
   <script src="app.js"></script>
+  <script src="chef.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="sync.js"></script>
 </body>
 </html>
