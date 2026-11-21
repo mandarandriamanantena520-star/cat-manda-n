@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CAT by Manda v2.0</title>
+  <title>CAT by Manda V4.7</title>
+  <script src="version.js"></script>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="theme-pro.css">
+  <link rel="stylesheet" href="theme-bred.css">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#111318">
-  <link rel="icon" href="/icons/icon-192.png">
+  <meta name="theme-color" content="#1C4B9C">
+  <link rel="icon" href="icon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
   <script>window.Dexie||document.write('<script src="https://unpkg.com/dexie@3.2.4/dist/dexie.min.js"><\/script>')</script>
   <script>window.Dexie||document.write('<script src="dexie-lite.js"><\/script>')</script>
@@ -17,9 +20,9 @@
       var msg = e.message + ' (' + String(e.filename || '').split('/').pop() + ':' + e.lineno + ')';
       var b = document.getElementById('errBanner');
       if (!b) { b = document.createElement('div'); b.id = 'errBanner';
-        b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#E5484D;color:#fff;padding:10px 14px;font:600 13px/1.4 Arial,sans-serif;white-space:pre-wrap;';
+        b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#DC3C44;color:#fff;padding:10px 14px;font:600 13px/1.4 Arial,sans-serif;white-space:pre-wrap;';
         (document.body || document.documentElement).appendChild(b); }
-      b.textContent += '\u26A0 ' + msg + '\n';
+      b.textContent += 'Erreur : ' + msg + '\n';
     }, true);
   </script>
 </head>
@@ -27,16 +30,12 @@
 
   <!-- ===== HEADER ===== -->
   <header>
+    <button id="btn-menu-logo" class="hd-burger" type="button" title="Menu" aria-label="Menu">
+      <svg width="30" height="26" viewBox="0 0 30 26" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M3 4h24M3 13h17M3 22h24"/></svg>
+    </button>
     <div class="header-brand">
-      <button id="btn-menu-logo" class="logo" title="Menu">
-        <svg viewBox="0 0 100 100" width="100%" height="100%">
-          <rect width="100" height="100" fill="#111318"/>
-          <text x="50" y="65" font-family="Arial" font-size="40" font-weight="900" fill="#FFCC11" text-anchor="middle">CAT</text>
-        </svg>
-      </button>
-      <div class="header-title">
-        <h1 class="brand-title">CAT by Manda</h1>
-      </div>
+      <img class="hd-logo" src="logo-cat.png" alt="CAT">
+      <h1 class="brand-title">CAT by Manda</h1>
     </div>
     <div class="header-actions">
       <button id="theme-toggle" class="btn-header-icon" title="Mode Jour/Nuit">
@@ -76,7 +75,7 @@
       </button>
       <button class="side-menu-item" onclick="goToPage('page-passation')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
-        passation 
+        Appoint 
       </button>
       <button class="side-menu-item" onclick="goToPage('page-travaux')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
@@ -89,6 +88,10 @@
       <button class="side-menu-item" onclick="goToPage('page-fiche')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
         Fiche d'Exploitation
+      </button>
+      <button class="side-menu-item" onclick="goToPage('page-messages')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Messages <span id="msgBadge" class="msg-badge" style="display:none"></span>
       </button>
       <button class="side-menu-item" onclick="goToPage('page-chef')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -156,12 +159,8 @@
             <input type="number" id="r-temp-huile">
           </div>
           <div>
-            <label>Transfo / Batterie</label>
-            <select id="r-transfo">
-              <option value="Aucun">Aucun</option>
-              <option value="Transfo">Transfo</option>
-              <option value="Batterie">Batterie</option>
-            </select>
+            <label>Transfo / Batterie (V)</label>
+            <input type="number" step="any" inputmode="decimal" id="r-transfo">
           </div>
           <div><label>RPM (tr/min)</label><input type="number" id="r-rpm"></div>
           <div><label>Heure marche (h)</label><input type="number" step="0.1" id="r-heure-marche"></div>
@@ -171,7 +170,7 @@
 
         <div class="sec">JAUGEAGE GASOIL</div>
         <div class="grid2">
-          <div><label>Gasoil (mm)</label><input type="number" id="r-gasoil-mm"></div>
+          <div><label>Gasoil (cm)</label><input type="number" id="r-gasoil-mm"></div>
           <div><label>Gasoil (Litres)</label><input type="text" id="r-gasoil-litres" readonly></div>
         </div>
 
@@ -194,7 +193,7 @@
               <tr>
                 <th>Puiss.</th><th>Tens.</th><th>Intens.</th><th>Cos</th><th>RPM</th><th>Fréq.</th>
                 <th>T° Eau</th><th class="col-g3">T° Huile</th><th>Transfo</th><th>P. Huile</th>
-                <th>P. Gasoil</th><th>Énergie</th><th>Gasoil</th><th>H. Marche</th><th></th>
+                <th>P. Gasoil</th><th>Air ADM</th><th>Énergie</th><th>Gasoil</th><th>H. Marche</th><th></th>
               </tr>
             </thead>
             <tbody id="tbody-releves"></tbody>
@@ -248,11 +247,11 @@
 
         <div class="sec">Niveaux Groupe (Gasoil)</div>
         <div class="grid2">
-          <div><label>Niveau AVANT (mm)</label><input type="number" id="ap-av-mm"></div>
-          <div><label>Niveau APRÈS (mm)</label><input type="number" id="ap-ap-mm"></div>
+          <div><label>Niveau AVANT (cm)</label><input type="number" id="ap-av-mm"></div>
+          <div><label>Niveau APRÈS (cm)</label><input type="number" id="ap-ap-mm"></div>
         </div>
         <div class="result" style="font-size:14px; padding:12px; margin-top:10px; background:var(--surface); border:1px dashed var(--border);">
-          Quantité ajoutée (auto) : <b id="ap-qte">0</b> Litres
+          Quantité ajoutée (auto) : <b id="ap-qte">0</b> cm ≈ <b id="ap-qte-l">0</b> Litres
         </div>
 
         <div class="sec">Niveaux Cuve T (CT)</div>
@@ -303,21 +302,9 @@
         <button class="btn btn-black btn-full mt-14" id="btn-save-transfert">Enregistrer le Transfert</button>
       </div>
 
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h2 style="margin:0;">Historique des Appoints</h2>
-          <button class="btn btn-black" id="btn-clear-appoints" style="padding:6px 10px; font-size:12px;">Tout effacer</button>
-        </div>
-        <div id="list-appoints" style="font-size:14px; margin-top:10px;"></div>
-      </div>
+      
 
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h2 style="margin:0;">Historique des Transferts</h2>
-          <button class="btn btn-black" id="btn-clear-transferts" style="padding:6px 10px; font-size:12px;">Tout effacer</button>
-        </div>
-        <div id="list-transferts" style="font-size:14px; margin-top:10px;"></div>
-      </div>
+      
     </div>
 
     <!-- ================= PAGE 3 : TRAVAUX ================= -->
@@ -346,19 +333,8 @@
             <input type="number" step="0.1" id="tw-hm" placeholder="Ex: 1500.5">
           </div>
           <div>
-            <label>Type de Travail</label>
-            <select id="tw-type">
-              <option value="Appoint d'eau">Appoint d'eau</option>
-              <option value="Appoint d'huile">Appoint d'huile</option>
-              <option value="Remplacement disjoncteur">Remplacement du disjoncteur</option>
-              <option value="Nettoyage du groupe">Nettoyage du groupe</option>
-              <option value="Vidange totale">Vidange totale</option>
-              <option value="Filtre à air">Remplacement Filtre à air</option>
-              <option value="Filtre séparateur">Remplacement Filtre séparateur</option>
-              <option value="Filtre à gasoil">Remplacement Filtre à gasoil</option>
-              <option value="Filtre à huile">Remplacement Filtre à huile</option>
-              <option value="Autres">Autres (Préciser)</option>
-            </select>
+            <label>Type(s) de Travail <small style="text-transform:none">(plusieurs possibles)</small></label>
+            <div id="tw-types" style="display:flex;flex-direction:column;gap:6px"><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;margin:0"><input type="checkbox" class="tw-cb" value="Appoint d'eau" style="width:auto"> Appoint d'eau</label><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;margin:0"><input type="checkbox" class="tw-cb" value="Appoint d'huile" style="width:auto"> Appoint d'huile</label><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;margin:0"><input type="checkbox" class="tw-cb" value="Remplacement disjoncteur" style="width:auto"> Remplacement du disjoncteur</label><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;margin:0"><input type="checkbox" class="tw-cb" value="Nettoyage du groupe" style="width:auto"> Nettoyage du groupe</label><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;margin:0"><input type="checkbox" class="tw-cb" value="Vidange totale" style="width:auto"> Vidange totale</label><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;margin:0"><input type="checkbox" class="tw-cb" value="Filtre à air" style="width:auto"> Remplacement Filtre à air</label><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;margin:0"><input type="checkbox" class="tw-cb" value="Filtre séparateur" style="width:auto"> Remplacement Filtre séparateur</label><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;margin:0"><input type="checkbox" class="tw-cb" value="Filtre à gasoil" style="width:auto"> Remplacement Filtre à gasoil</label><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;margin:0"><input type="checkbox" class="tw-cb" value="Filtre à huile" style="width:auto"> Remplacement Filtre à huile</label><label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;margin:0"><input type="checkbox" class="tw-cb" value="Autres" style="width:auto"> Autres (Préciser)</label></div>
           </div>
         </div>
 
@@ -381,32 +357,14 @@
         <button class="btn btn-yellow btn-full mt-14" id="btn-save-travail">Enregistrer le Travail</button>
       </div>
 
-      <div class="card">
-        <h2>Cahier de Travaux</h2>
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Groupe</th>
-                <th>HM</th>
-                <th>Travaux</th>
-                <th>Référence</th>
-                <th>Q/té</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="tbody-travaux"></tbody>
-          </table>
-        </div>
-        <button class="btn btn-black btn-full mt-14" id="btn-clear-travaux">Tout effacer</button>
-      </div>
+      
     </div>
 
     <!-- ================= PAGE 4 : CALENDRIER ================= -->
     <div id="page-calendrier" class="page">
       <div class="card">
         <h2 style="margin-bottom: 15px;">Calendrier Tour de Quart</h2>
+        <div id="myShift"></div>
         
         <div class="cal-nav" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom: 15px;">
           <button class="btn btn-black" id="btnCalPrev" style="padding:8px 12px; font-size:14px;">Préc.</button>
@@ -421,6 +379,7 @@
           <div id="calendar" style="display:grid; grid-template-columns: repeat(7, 1fr); gap: 6px;"></div>
         </div>
 
+        <div class="cal-up"><h3>Congés à venir</h3><div id="leaveUpcoming"></div></div>
         <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
           <button class="btn btn-yellow" id="btnOpenLeaves" style="padding: 10px 16px; font-size: 14px; display: flex; align-items: center; gap: 8px; border-radius: 8px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -437,6 +396,7 @@
     <!-- ================= PAGE 5 : FICHE D'EXPLOITATION ================= -->
     <div id="page-fiche" class="page fiche-page"></div>
     <div id="page-chef" class="page"></div>
+    <div id="page-messages" class="page msg-page"></div>
   </div>
 
   <!-- ================= MODALS ================= -->
@@ -514,47 +474,8 @@
     </div>
   </div>
 
-  <!-- ===== MODAL: PARAMÈTRES ===== -->
-  <div class="modal-overlay" id="settingsModal">
-    <div class="modal">
-      <div class="modal-head">
-        <div>
-          <h3 style="font-size:20px;">Paramètres</h3>
-          <p style="font-size:14px;">Sauvegarde & Style</p>
-        </div>
-        <button type="button" class="modal-close" onclick="document.getElementById('settingsModal').classList.remove('open'); document.body.style.overflow = '';">×</button>
-      </div>
-      <div class="modal-body">
-        
-        <div class="sec">SAUVEGARDE DES DONNÉES</div>
-        <p style="font-size:14px; color:var(--text-muted); margin-bottom:10px;">Exporter toutes les données pour les sécuriser, ou importer un fichier de sauvegarde.</p>
-        <div class="grid2">
-          <button class="btn btn-yellow" onclick="exportData()" style="width:100%;">Exporter (JSON)</button>
-          <button class="btn btn-black" onclick="document.getElementById('importFile').click()" style="width:100%;">Importer</button>
-        </div>
-        <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
-
-        <div class="sec">THÈME</div>
-        <div class="grid2">
-          <button class="btn btn-yellow" onclick="setTheme('light')" style="width:100%;">Mode Jour</button>
-          <button class="btn btn-black" onclick="setTheme('dark')" style="width:100%;">Mode Nuit</button>
-        </div>
-
-        <div class="sec">COULEUR D'ACCENT</div>
-        <div class="color-picker-grid">
-          <button class="color-btn" style="background: #FFCC11;" onclick="setAccent('#FFCC11')" title="Mavo"></button>
-          <button class="color-btn" style="background: #E5484D;" onclick="setAccent('#E5484D')" title="Mena"></button>
-          <button class="color-btn" style="background: #18A957;" onclick="setAccent('#18A957')" title="Maintso"></button>
-          <button class="color-btn" style="background: #3B82F6;" onclick="setAccent('#3B82F6')" title="Manga"></button>
-          <button class="color-btn" style="background: #8B5CF6;" onclick="setAccent('#8B5CF6')" title="Volomparasy"></button>
-          <button class="color-btn" style="background: #F97316;" onclick="setAccent('#F97316')" title="Oranjy"></button>
-        </div>
-        <button class="btn btn-black btn-full mt-14" onclick="setAccent('#FFCC11')">Réinitialiser</button>
-
-        <button class="btn btn-black btn-full mt-14" onclick="document.getElementById('settingsModal').classList.remove('open'); document.body.style.overflow = '';">Fermer</button>
-      </div>
-    </div>
-  </div>
+  <!-- ===== MODAL: PARAMÈTRES (rempli par app.js : renderSettings) ===== -->
+  <div class="modal-overlay" id="settingsModal"></div>
 
   <!-- ===== MODAL: HISTORIQUE (rubriques cliquables → tableau plein écran) ===== -->
   <div class="modal-overlay" id="historyModal">
@@ -575,45 +496,61 @@
 
   <!-- ===== MODAL: À PROPOS ===== -->
   <div class="modal-overlay" id="aboutModal">
-    <div class="modal">
+    <div class="modal bred-modal hero">
       <div class="modal-head">
-        <div>
-          <h3 style="font-size:20px;">À propos</h3>
-          <p style="font-size:14px;">CAT by Manda v2.0</p>
-        </div>
-        <button type="button" class="modal-close" onclick="document.getElementById('aboutModal').classList.remove('open'); document.body.style.overflow = '';">×</button>
+        <button type="button" class="modal-close" aria-label="Retour" onclick="document.getElementById('aboutModal').classList.remove('open'); document.body.style.overflow = '';"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+        <h3>À propos</h3>
+        <span class="bm-circle bm-ghost" aria-hidden="true"></span>
       </div>
       <div class="modal-body">
-        
-        <div style="text-align:center; margin-bottom: 20px;">
-          <div class="about-logo">CAT</div>
-          <h4 style="font-size: 22px; font-weight: 900; margin: 15px 0 5px;">CAT by Manda v2.0</h4>
-          <p style="color: var(--text-muted); font-size: 14px;">Application de gestion d'exploitation</p>
+        <div class="cd-hero">
+          <div class="hc-top">
+            <div class="hc-ic"><img src="logo-cat.png" alt="CAT"></div>
+            <div class="hc-t"><b>CAT by Manda</b><span>Mahanoro Power System</span></div>
+          </div>
+          <div class="hc-lab">Version</div>
+          <div class="hc-val"><b class="app-ver">V4.7</b></div>
         </div>
-        
-        <div class="about-card">
-          <h5 style="font-size: 15px; font-weight: 800; margin-bottom: 8px;">Mombamomba ny Application</h5>
-          <ul style="font-size: 14px; line-height: 1.7; color: var(--text-muted); padding-left: 20px;">
-            <li><b>Mpamorona :</b> Manda (Mpanoratra code)</li>
-            <li><b>Natao ho an'ny :</b> Henri Fraise Fils & Cie - Mahanoro Power System</li>
-            <li><b>Daty nanaovana :</b> Novambra 2026</li>
-            <li><b>Version :</b> 2.0.0 (PWA - Progressive Web App)</li>
+
+        <div class="ab-card">
+          <div class="ab-h"><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></i><b>Mombamomba ny Application</b></div>
+          <ul>
+            <li><b>Mpamorona :</b> Manda Nandrianina (Creative Developer &amp; Digital Designer)</li>
+            <li><b>Natao manokana ho an'ny :</b> Henri Fraise Fils &amp; Cie — Tobim-pamokarana herinaratra Mahanoro Power System</li>
+            <li><b>Daty namoahana :</b> Novambra 2026</li>
+            <li><b>Version sy Teknolojia :</b> Version <span class="app-ver">V4.7</span> — Progressive Web App (PWA) mifanaraka amin'ny finday sy ordinatera.</li>
+          </ul>
+          <p>Ny CAT by Manda dia rindranasa maoderina natao hanamora sy handrindrana ny fitantanana ara-teknika sy ny fanaraha-maso ny fiasan'ireo milina mpamokatra herinaratra (Groupes Électrogènes G1, G2, G3) ao amin'ny Mahanoro Power System. Noforonina izy ity mba hanoloana ny fomba fiasa mahazatra amin'ny taratasy sy hanomezana fitaovana haingana, marina, ary azo antoka ho an'ny ekipa miasa eo an-toerana.</p>
+        </div>
+
+        <div class="ab-card">
+          <div class="ab-h"><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></i><b>Ireo fiasa fototra sy tombotsoa azo amin'ny fampiasana</b></div>
+          <ul>
+            <li><b>Fitehirizana numérique feno :</b> Tsy mila taratasy intsony amin'ny fanoratana ny relevés horaires, ny appoints gasoil, ny transferts, ary ny cahier de travaux. Voatahiry avy hatrany ao anatin'ny fitaovanao ny angon-drakitra rehetra.</li>
+            <li><b>Fikajiana automatique sy marina :</b> Ny kajy ara-teknika rehetra toy ny Barème C16, ny CSP, ny elanelan'ny solika (litatra sy santimetatra), ary ny faharetan'ny fiasana dia kajin'ny rindranasa ho azy mba hisorohana ny fahadisoana.</li>
+            <li><b>Fampiasana tsy mila Internet (Mode Offline) :</b> Noho ny teknolojia PWA, dia mandeha tsara sy haingana hatrany ny rindranasa na dia tapaka aza ny tambajotra Internet eo an-toerana.</li>
+            <li><b>Fitantanana ny fandaharam-potoana (Calendrier &amp; Tour de quart) :</b> Manamora ny fandrindrana ny fifandimbiasan'ny mpiasa (agents de quart) sy ny fitantanana ny fialan-tsasatra (congés) miaraka amin'ny fanitsiana mandeha ho azy ny fihodinana.</li>
+            <li><b>Famoahana tatitra haingana (Exportation) :</b> Afaka avoaka avy hatrany amin'ny endrika rakitra CSV ireo tabilao famintinana (tableaux récapitulatifs) mba hanamorana ny fanaraha-maso sy ny tatitra alefa any amin'ny lehibe (Espace Chef sy Fiche d'Exploitation).</li>
           </ul>
         </div>
 
-        <div class="about-card">
-          <h5 style="font-size: 15px; font-weight: 800; margin-bottom: 8px;">Tombotsoa azo amin'ny fampiasana</h5>
-          <ul style="font-size: 14px; line-height: 1.7; color: var(--text-muted); padding-left: 20px;">
-            <li><b>Fitehirizana numérique :</b> Tsy mila taratasy intsony, voatahiry ao amin'ny finday ny données rehetra.</li>
-            <li><b>Fikajiana automatique :</b> Ny Bareme C16, CSP, sy ny hafa dia kajy ho azy.</li>
-            <li><b>Miasa offline :</b> Afaka ampiasaina na tsy misy internet (PWA).</li>
-            <li><b>Fitantanana calendrier :</b> Ny tour de quart sy ny congés dia hita mazava tsara.</li>
-          </ul>
+        <div class="ab-card">
+          <div class="ab-h"><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></i><b>Fiarovana ny angon-drakitra (Sauvegarde &amp; Sécurité)</b></div>
+          <p>Tehirizina mivantana ao anatin'ny fitadidian'ity fitaovana ity (finday na ordinatera ampiasainao) ny angon-drakitra rehetra ampidirinao mba hiantohana ny tsiambaratelo sy ny hafainganam-piasa. Noho izany, entanina mafy ny mpampiasa rehetra hanao « Exporter (JSON) » matetika ao amin'ny fizarana Paramètres mba hitahirizana kopia fiarovana (backup) sy mamerina ny asa vitanao rehetra raha sendra misy fahaverezana, fanoloana finday, na fanadiovana ny cache-n'ny navigateur.</p>
         </div>
 
-        <p style="font-size: 12px; color: var(--text-muted); text-align:center; margin-top: 20px;">© 2026 - Henri Fraise Fils & Cie. Tous droits réservés.</p>
-        
-        <button class="btn btn-black btn-full mt-14" onclick="document.getElementById('aboutModal').classList.remove('open'); document.body.style.overflow = '';">Fermer</button>
+        <div class="ab-card">
+          <div class="ab-h"><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M14.83 9.17l4.24-4.24M4.93 19.07l4.24-4.24"/></svg></i><b>Fanampiana teknika sy Fifandraisana (Support &amp; Contact)</b></div>
+          <p>Raha sendra misy olana ara-teknika (bug), fanontaniana momba ny fampiasana ny rindranasa, na soso-kevitra fanatsarana tianao haroso, dia aza misalasala mifandray mivantana amin'ny mpamorona :</p>
+          <div style="margin-top:6px">
+            <a class="ab-link first" href="https://wa.me/261382490150" data-ext="1"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></i><span><b>Finday / WhatsApp</b><small>+261 38 24 901 50</small></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="chev"><polyline points="9 18 15 12 9 6"/></svg></a>
+            <a class="ab-link" href="mailto:mandarandriamanantena520@gmail.com"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></svg></i><span><b>Adiresy Mailaka</b><small>mandarandriamanantena520@gmail.com</small></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="chev"><polyline points="9 18 15 12 9 6"/></svg></a>
+            <a class="ab-link" href="https://portfolio-manda.netlify.app/" data-ext="1" target="_blank" rel="noopener"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></i><span><b>Portfolio &amp; Tetikasa</b><small>portfolio-manda.netlify.app</small></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="chev"><polyline points="9 18 15 12 9 6"/></svg></a>
+            <a class="ab-link" href="https://www.facebook.com/manda.nandrianina.randriamanantena" data-ext="1" target="_blank" rel="noopener"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></i><span><b>Facebook</b><small>Manda Nandrianina</small></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="chev"><polyline points="9 18 15 12 9 6"/></svg></a>
+          </div>
+        </div>
+
+        <p class="ab-foot">© 2026 - Henri Fraise Fils &amp; Cie — Mahanoro Power System. Zo rehetra voatokana (Tous droits réservés).</p>
       </div>
     </div>
   </div>
@@ -626,7 +563,27 @@
       <span class="tv-count" id="tvCount"></span>
       <button type="button" class="tv-btn" id="tvCsv">CSV</button>
     </div>
-    <div class="tv-tools"><input type="search" id="tvSearch" placeholder="Rechercher dans le tableau…" autocomplete="off"></div>
+    <div class="tv-tools">
+      <div class="tv-bar">
+        <input type="search" id="tvSearch" placeholder="Rechercher dans le tableau…" autocomplete="off">
+        <button type="button" class="tv-filter-btn" id="tvFilterBtn" aria-label="Filtrer" aria-expanded="false" title="Filtrer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          <span class="tv-badge hidden" id="tvFilterBadge">0</span>
+        </button>
+      </div>
+      <div class="tv-filter-panel hidden" id="tvFilterPanel">
+        <label>Groupe
+          <select id="tvFGrp" aria-label="Groupe"><option value="">Tous groupes</option><option>G1</option><option>G2</option><option>G3</option></select>
+        </label>
+        <label>Date
+          <input type="date" id="tvFDate" aria-label="Date">
+        </label>
+        <label>Heure
+          <input type="time" id="tvFHeure" aria-label="Heure">
+        </label>
+        <button type="button" class="tv-btn" id="tvFReset" title="Réinitialiser les filtres">Réinitialiser</button>
+      </div>
+    </div>
     <div class="tv-body">
       <table class="tv-table" id="tvTable"><thead></thead><tbody></tbody></table>
       <div class="tv-more"><button type="button" class="btn btn-black hidden" id="tvMore">Afficher plus</button></div>
@@ -641,7 +598,7 @@
     </button>
     <button class="nav-btn" data-target="page-passation">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
-      <span style="font-size:12px;">Passation</span>
+      <span style="font-size:12px;">Appoint</span>
     </button>
     <button class="nav-btn" data-target="page-travaux">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
@@ -657,9 +614,13 @@
     </button>
   </nav>
 
+  <script>document.title="CAT by Manda "+self.APP_VERSION;document.querySelectorAll(".app-ver").forEach(function(e){e.textContent=self.APP_VERSION})</script>
   <script src="icons.js"></script>
   <script src="app.js"></script>
+  <script src="operations.js"></script>
   <script src="chef.js"></script>
+  <script src="pdf.js"></script>
+  <script src="messenger.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="sync.js"></script>

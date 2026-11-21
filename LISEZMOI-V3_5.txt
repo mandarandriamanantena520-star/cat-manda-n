@@ -1,0 +1,28 @@
+CAT by Manda V3.5 - Etape 1 (priorite 1 du cahier des charges)
+- version.js : source unique de la version (titre, A propos, manifest, nom du cache du service worker)
+- PPS complet (S/N, CTR horaire, compteurs J-1/J, PV, pointes, pointe max historique, 3 tableaux libres)
+- DPR complete (X2/X3/X4, debitmetre, huile, auxiliaires, stock huile, ecart actual/accountable, densite unique)
+- E-mail modeles A et B, date d'envoi + date de realisation, signature du Chef connecte
+- Complements du rapport saisissables par le Chef (onglet Rapports) ; non ecrases par la re-soumission de la fiche
+A faire (etape 2) : calendrier personnalisable, tableau de bord KPI, dossiers employes/CIN, Parametres, A propos accordeon, PDF joint.
+
+Etape 2a - Calendrier personnalisable (6.2)
+- Le Chef definit postes (nom, debut, fin, passage de minuit), agents, pas de rotation, jour de depart, jours bloques ; date d'effet, passe jamais reecrit.
+- Conges : la rotation se recalcule sur les agents presents (4 -> 3 ...).
+- Modification manuelle d'un jour et echange de deux postes, traces (qui, quand), synchronises via la table roster.
+- Agents : bandeau "Mon poste" (aujourd'hui/demain) + avertissement si le Chef modifie le planning.
+- Plan existant conserve (Jour/Nuit 07h-17h, pas 2) : meme resultat qu'avant ; bouton "Postes par defaut (3 postes)" = 06:30-13:00 / 13:00-19:00 / 19:00-06:30.
+
+=== V3.8 - Dossiers employes (6.1) ===
+- Onglet Chef "Employes" : profils (avatar), statut en temps reel (de quart / repos / en conge), fiche complete, modifier, supprimer, imprimer / PDF.
+- Table `employes` (nom, poste, statut, avatar) : synchronisee. Table `employes_rh` (naissance, tel, adresse, CIN + photos recto/verso compressees, CNaPS) : LOCALE au Chef, jamais synchronisee (absente de sync.js).
+- Export JSON (Parametres) inclut les deux tables. Base IndexedDB passee en version 10.
+- Planning : bouton "Importer les agents actifs" depuis les dossiers employes.
+- Ancien onglet "Equipe" (approbation des comptes) renomme "Compte".
+Limite : les CIN ne sont pas visibles depuis un autre appareil du Chef (volontaire, en attendant un bucket prive + RLS Supabase).
+
+=== V3.9 - Tableau de bord KPI (6.1) ===
+- Accueil Chef : etat des groupes (en marche / arret / maintenance), stock gasoil (Cuve T + groupes) avec alerte seuil bas, production jour/mois, CSP moyenne, rendement, graphiques production et consommation (14 jours).
+- Fil d'alertes : alertes de releves hors limites remontees automatiquement par les agents (table `alertes`) + consignes prioritaires publiees par le Chef (table `consignes`), toutes deux synchronisees. Base IndexedDB version 11.
+- Etat d'un groupe : "en marche" si dernier releve < 3 h avec RPM > 0 ; "maintenance" si travaux du jour et groupe arrete.
+A faire : afficher les consignes cote agent ; Parametres restructures ; A propos en accordeon ; PDF joint aux e-mails.

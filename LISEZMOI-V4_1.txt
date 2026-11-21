@@ -1,0 +1,10 @@
+CAT by Manda V4.1 - Interface professionnelle, sans emoji
+
+V4.0 : theme-pro.css (nouvelle identite visuelle, chargee apres style.css).
+V4.1 :
+- Connexion / Creation de compte (sync.js) : en-tete noir a motif geometrique, feuille blanche arrondie, champs en cartes flottantes, bouton noir.
+- Espace Chef (chef.js + theme-pro.css) : carte flottante en tete, grille de tuiles (Fiches, Rapports, Quart, Employes, Compte), barre de 3 actions en bas sur mobile (Messages, Historique, Parametres), masquee sur ordinateur.
+- icons.js : icones ajoutees (calendar, back, msg, clock, gear).
+Inchange : fiche d'exploitation (.fp-*, .fiche-*, .dpr), messenger.js, config.js, dexie-lite.js.
+
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > forcer la mise a jour / vider le cache PWA.

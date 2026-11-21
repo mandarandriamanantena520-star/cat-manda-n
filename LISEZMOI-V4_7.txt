@@ -1,0 +1,20 @@
+CAT by Manda V4.7 - DPR et PPS en PDF (etape 3)
+
+NOUVEAU
+- pdf.js (nouveau) : cree un vrai fichier PDF A4 paysage a partir du rapport, SANS bibliotheque externe (marche hors ligne).
+  Le rapport est dessine par le navigateur puis mis dans le PDF : rendu identique a l'ecran (le texte n'est pas selectionnable).
+  Si le rapport depasse une page, il est decoupe sur plusieurs pages ; la resolution baisse automatiquement si le fichier depasse ~1,9 Mo.
+- Messagerie (messenger.js) :
+  * l'e-mail envoye contient DPR_MAHANORO_<date>.pdf / PPS_MAHANORO_<date>.pdf (plus de .html) ;
+  * bouton « PDF » dans le message pour telecharger le fichier ;
+  * « Partager » envoie le PDF ;
+  * si le navigateur ne sait pas dessiner le rapport, secours automatique : envoi en HTML comme avant (jamais de perte d'envoi).
+- serveur-email/send-mail.ts : type MIME « application/pdf » pour les .pdf -> A REDEPLOYER sur Supabase (voir serveur-email/LISEZ-MOI.txt).
+
+LIMITES / A SAVOIR
+- Non teste sur un vrai telephone ici : la creation du PDF depend du navigateur (Chrome Android : prevu OK ; Safari iPhone peut refuser -> secours HTML).
+- Les anciens messages deja envoyes gardent leur piece jointe HTML d'origine ; le PDF est cree a la demande a partir du rapport memorise.
+
+FICHIERS MODIFIES : messenger.js, serveur-email/send-mail.ts, serveur-email/LISEZ-MOI.txt, index.html, sw.js, version.js (V4.7), manifest.json.
+NOUVEAUX : pdf.js, LISEZMOI-V4_7.txt.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

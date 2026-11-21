@@ -1,0 +1,20 @@
+CAT by Manda V4.2 - Interface copiee sur l'application bancaire (BRED)
+
+NOUVEAU
+- theme-bred.css (NOUVEAU, charge apres theme-pro.css) : tout le design est ici.
+- En-tete : menu (3 traits) a gauche, logo au centre, bouton rond (jour/nuit) a droite.
+- Accueil Chef : feuille blanche arrondie, carte violette flottante (production du jour,
+  oeil pour masquer la valeur, fleche = valider les fiches avec pastille du nombre en attente,
+  icone fichier = Rapports), tuiles 3 par ligne, bandeau CAT, puis les indicateurs, barre basse arrondie.
+- Parametres : meme structure. Carte violette + grille de tuiles (Apparence, Securite, Technique,
+  Calculs, Alertes, Sauvegarde, Donnees, A propos). Fleche en haut = retour.
+- A propos : en-tete bleu, carte violette (nom + version), cartes blanches, contacts en liste.
+- Police : Roboto / police systeme (comme l'application bancaire). Manrope n'est plus charge.
+- Correctif : la carte du Chef n'est plus cachee sous l'en-tete collant.
+
+FICHIERS MODIFIES : index.html, theme-bred.css (nouveau), theme-pro.css (ancien bloc V4.1 retire),
+chef.js, app.js, icons.js, sw.js, version.js (V4.2), manifest.json.
+INCHANGES : style.css, sync.js, messenger.js, config.js, dexie-lite.js, images.
+
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour
+(vide le cache PWA).

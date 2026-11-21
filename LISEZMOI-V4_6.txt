@@ -1,0 +1,20 @@
+CAT by Manda V4.6 - Correctif Operations + empreinte digitale sur la connexion
+
+CORRIGE
+1) Menu > « Operations » n'apparaissait pas (operations.js)
+   Cause : le fichier s'executait avant la creation de la base locale (app.js la cree apres DOMContentLoaded).
+   Maintenant il attend DOMContentLoaded. « Operations » apparait entre Travaux et Calendrier.
+
+NOUVEAU
+2) Connexion : gros bouton empreinte (style BRED) « Touchez pour authentification biometrique » (sync.js, icons.js)
+   - Gris = pas encore activee sur cet appareil ; noir = activee.
+   - Premiere fois : entrer e-mail + mot de passe, puis toucher le bouton (ou Connexion) -> l'appli propose « Activer ».
+   - Ensuite : toucher le bouton ouvre l'application avec l'empreinte.
+   - Si l'appareil/le contexte ne le permet pas, un message l'explique.
+3) Parametres > Securite : ligne « Empreinte digitale » avec bouton Activer / Desactiver (app.js).
+
+ATTENTION : l'empreinte (WebAuthn) ne marche que sur un vrai telephone/tablette avec empreinte enregistree et l'app ouverte en HTTPS
+(site en ligne / PWA installee). Elle ne marche pas en file:/// ni dans un « Apercu » integre a un editeur.
+
+FICHIERS MODIFIES : operations.js, sync.js, icons.js, app.js, index.html, version.js (V4.6), manifest.json.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

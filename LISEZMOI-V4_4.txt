@@ -1,0 +1,18 @@
+CAT by Manda V4.4 - Connexion, A propos (etape 1)
+
+NOUVEAU / CORRIGE
+1) Page de connexion (sync.js)
+   - « Mot de passe oublie ? » : saisir l'e-mail -> un lien de reinitialisation est envoye ; le lien ouvre l'ecran « Nouveau mot de passe ».
+   - Bouton « Se connecter avec l'empreinte » sur la page de connexion (si l'empreinte a deja ete activee sur ce telephone/tablette).
+     Si la session est expiree, le mot de passe est demande une seule fois, puis l'empreinte reprend.
+   A FAIRE UNE FOIS dans Supabase (Authentication > URL Configuration) : mettre l'adresse du site dans « Site URL » et dans « Redirect URLs »,
+   sinon le lien recu par e-mail n'ouvrira pas l'application. Necessite internet (ne marche pas en file:///).
+2) A propos (index.html, app.js)
+   - Le numero ouvre maintenant WhatsApp (https://wa.me/261382490150).
+   - Facebook et Portfolio : ouverture geree par le code (nouvel onglet, sinon meme fenetre).
+
+FICHIERS MODIFIES : sync.js, index.html, app.js, version.js (V4.4), manifest.json.
+A VENIR (etapes suivantes) : operations de l'agent de quart (Remise, Couplage, Permutation, Decouplage, Declenchement, Arret moteur + releves obligatoires),
+sonnerie de notification messagerie, DPR/PPS en vrai PDF.
+
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

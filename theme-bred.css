@@ -1,0 +1,272 @@
+/* ============================================================
+   CAT by Manda V4.3.1 - Theme BRED
+   Copie du design de l'application bancaire : en-tête bleu avec
+   menu / logo / bouton rond, feuille blanche arrondie, carte violette
+   flottante, tuiles blanches, bandeau, barre basse arrondie.
+   Chargé APRÈS style.css et theme-pro.css.
+   ============================================================ */
+
+:root {
+  --font: Roboto, 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --bred: #1C4B9C;
+  --bred-ic: #2A5CB5;
+  --bred-lab: #24529F;
+  --sheet-bg: linear-gradient(180deg, #FFFFFF 0%, #F2F5FC 70%);
+  --vio: linear-gradient(160deg, #A98FFF 0%, #7B5CFF 48%, #5A35F8 100%);
+  --tile-sh: 0 10px 26px rgba(28, 75, 156, .12);
+}
+body.dark-mode {
+  --bred: #0E2250;
+  --bred-ic: #86AAFF;
+  --bred-lab: #C5D6FF;
+  --sheet-bg: var(--bg);
+  --tile-sh: 0 10px 26px rgba(0, 0, 0, .35);
+}
+
+/* ---------- En-tête : menu | logo | bouton rond ---------- */
+header {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  max-width: none; margin: 0; border: 0;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 18px 14px;
+  background: var(--bred); color: #fff;
+  border-radius: 0 0 26px 26px;
+  box-shadow: 0 6px 18px rgba(14, 34, 80, .22);
+}
+body.dark-mode header { background: var(--bred); }
+.hd-burger {
+  width: 44px; height: 44px; flex-shrink: 0; padding: 0;
+  display: flex; align-items: center; justify-content: flex-start;
+  background: none; border: 0; color: #fff; cursor: pointer;
+}
+.header-brand { flex: 1; width: auto; position: static; display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 0; }
+.hd-logo { width: 38px; height: 38px; flex-shrink: 0; border-radius: 11px; object-fit: cover; background: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, .3); }
+.brand-title, body.dark-mode .brand-title {
+  margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0; line-height: 1.1;
+  font-style: normal; text-transform: none; white-space: nowrap;
+  color: #fff; -webkit-text-fill-color: #fff; -webkit-text-stroke: 0; background: none; text-shadow: none;
+}
+.header-actions { position: static; flex-shrink: 0; }
+.btn-header-icon, body.dark-mode .btn-header-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255, 255, 255, .16); border: 0; color: #fff; box-shadow: none;
+}
+.btn-header-icon:hover { background: rgba(255, 255, 255, .26); transform: none; }
+.btn-header-icon svg, body.dark-mode .btn-header-icon svg { stroke: #fff; }
+
+.side-menu-header { background: var(--bred); }
+
+/* ---------- Barre basse (pages agent) : feuille arrondie ---------- */
+.bottom-nav {
+  height: auto; border: 0; border-radius: 28px 28px 0 0;
+  padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 28px rgba(28, 75, 156, .12);
+}
+.nav-btn svg, .nav-btn:not(.active):hover svg { width: 26px; height: 26px; stroke: var(--bred-ic); stroke-width: 1.7; }
+.nav-btn span, .nav-btn.active span { color: var(--text-main); font-size: 12px !important; font-weight: 500; }
+.nav-btn.active span { color: var(--bred-ic); font-weight: 700; }
+.nav-btn.active svg, body.dark-mode .nav-btn.active svg { stroke: var(--bred-ic); }
+.nav-btn.active::before { display: none; }
+
+/* ---------- Fenêtres : en-tête bleu arrondi ---------- */
+.modal-head {
+  background: var(--bred); color: #fff; border-radius: 0 0 28px 28px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 22px; gap: 12px;
+}
+.modal-head h3 { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 0; }
+.modal-head p { color: rgba(255, 255, 255, .78); }
+.modal-close, .bm-circle {
+  width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%; border: 0; padding: 0;
+  background: rgba(255, 255, 255, .16); color: #fff; font-size: 22px;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.modal-close:hover { background: rgba(255, 255, 255, .26); transform: none; }
+.bm-ghost { background: none; pointer-events: none; }
+.tv-head { background: var(--bred); }
+
+/* ---------- Carte violette flottante (accueil, Paramètres, À propos) ---------- */
+.cd-hero {
+  position: relative; overflow: hidden; display: block;
+  width: 78%; max-width: 430px; min-height: 131px; margin: -60px auto 0;
+  padding: 17px 24px 14px; border-radius: 26px;
+  background: var(--vio); color: #fff;
+  box-shadow: 0 22px 34px -16px rgba(91, 53, 248, .55);
+}
+.cd-hero::before { content: ""; position: absolute; right: -70px; top: -60px; width: 250px; height: 250px; border-radius: 50%; background: rgba(255, 255, 255, .10); }
+.cd-hero::after { content: ""; position: absolute; left: -40px; bottom: -120px; width: 340px; height: 200px; border-radius: 50%; background: rgba(255, 255, 255, .08); }
+.cd-hero > * { position: relative; z-index: 1; }
+.hc-top { display: flex; align-items: center; gap: 14px; }
+.hc-ic {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px;
+  background: rgba(255, 255, 255, .92) center/cover no-repeat; color: #4B2FD0;
+  display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; overflow: hidden;
+}
+.hc-ic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hc-t { flex: 1; min-width: 0; padding-right: 30px; display: flex; flex-direction: column; gap: 2px; }
+.hc-t b { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hc-t span { font-size: 12px; font-weight: 400; opacity: .92; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hc-print { position: absolute; top: 14px; right: 18px; padding: 2px; background: none; border: 0; color: #fff; line-height: 0; cursor: pointer; }
+.hc-lab { margin-top: 14px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, .74); }
+.hc-lab .chef-b { background: rgba(255, 255, 255, .22); color: #fff; font-size: 10px; padding: 2px 8px; }
+.hc-val { margin-top: 2px; padding-right: 44px; display: flex; align-items: baseline; gap: 6px; min-height: 28px; }
+.hc-val b { font-size: 19px; font-weight: 700; letter-spacing: .3px; }
+.hc-val i { font-style: normal; font-size: 15px; font-weight: 700; }
+.hc-eye { align-self: center; padding: 0 0 0 4px; background: none; border: 0; color: #fff; line-height: 0; cursor: pointer; }
+.hc-go {
+  position: absolute; right: 18px; bottom: 13px; z-index: 2;
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, .85); background: none; color: #fff;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.hc-go em {
+  position: absolute; top: -8px; right: -8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px;
+  background: #FFC20E; color: #1A1A1A; font-style: normal; font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ---------- Tuiles (3 par ligne) ---------- */
+.cd-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px 10px; margin: 45px 0 0; }
+.cd-nt {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  min-height: 108px; padding: 20px 6px 16px;
+  background: var(--surface); border: 0; border-radius: 23px;
+  box-shadow: var(--tile-sh); color: var(--bred-ic); font-family: inherit; cursor: pointer;
+  transition: transform .15s, box-shadow .2s;
+}
+.cd-nt svg { width: 40px; height: 40px; stroke-width: 1.6; }
+.cd-nt span { font-size: 12px; font-weight: 600; line-height: 1.2; text-align: center; color: var(--bred-lab); }
+.cd-nt:hover { box-shadow: 0 14px 30px rgba(28, 75, 156, .18); }
+.cd-nt:active { transform: scale(.97); }
+
+/* ---------- Bandeau (comme la bannière de l'appli bancaire) ---------- */
+.cd-banner {
+  position: relative; overflow: hidden; display: flex; min-height: 147px; margin: 40px -6px 26px;
+  padding: 18px 16px; border-radius: 16px; color: #fff;
+  background: linear-gradient(110deg, #0B3A82 0%, #0F55A8 55%, #0A92C6 100%);
+  box-shadow: var(--tile-sh);
+}
+.bn-txt { position: relative; z-index: 1; flex: 1; max-width: 62%; display: flex; flex-direction: column; justify-content: space-between; }
+.bn-txt b { font-size: 25px; font-weight: 800; line-height: 1.05; color: #FFC20E; }
+.bn-txt p { margin: 6px 0 0; font-size: 13.5px; font-weight: 300; line-height: 1.25; letter-spacing: .2px; }
+.bn-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.bn-foot img { width: 26px; height: 26px; border-radius: 8px; }
+.bn-foot small { font-size: 9.5px; line-height: 1.2; opacity: .9; }
+.bn-rays { position: absolute; right: -8px; top: 0; height: 100%; width: auto; }
+
+/* ---------- Blocs de données sous le bandeau ---------- */
+.cd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 14px; }
+.cd-tile { background: var(--surface); border: 0; border-radius: 22px; box-shadow: var(--tile-sh); padding: 16px; }
+.cd-ic { width: 40px; height: 40px; border-radius: 13px; background: var(--ac-soft); color: var(--bred-ic); }
+.cd-card { background: var(--surface); border: 0; border-radius: 22px; box-shadow: var(--tile-sh); }
+.cd-bars span { background: var(--bred-ic); }
+
+/* ---------- Barre de 3 actions en bas (accueil Chef) ---------- */
+.cd-dock {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 900;
+  display: flex; justify-content: space-around;
+  background: var(--surface); border-radius: 30px 30px 0 0;
+  box-shadow: 0 -8px 28px rgba(28, 75, 156, .14);
+  padding: 14px 8px calc(14px + env(safe-area-inset-bottom, 0px));
+}
+.cd-dock button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; background: none; border: 0; color: var(--bred-ic); font-family: inherit; cursor: pointer; }
+.cd-dock button svg { width: 28px; height: 28px; stroke-width: 1.6; }
+.cd-dock button span { font-size: 12px; font-weight: 500; color: var(--text-main); }
+
+/* ---------- Page Espace Chef : accueil = feuille blanche arrondie ---------- */
+body.on-chef { padding-bottom: 0; }
+body.on-chef .bottom-nav { display: none; }
+body.on-chef .container { padding-bottom: 120px; }
+body.on-chef.chef-home header {
+  position: relative; z-index: 1; height: 203px; align-items: flex-start;
+  border-radius: 0; box-shadow: none; padding-bottom: 0;
+}
+body.on-chef.chef-home .container {
+  display: flow-root;   /* empêche la marge négative de la carte de remonter la feuille */
+  position: relative; z-index: 2; max-width: none; margin: -57px 0 0;
+  padding: 0 20px 150px; background: var(--sheet-bg);
+  border-radius: 68px 68px 0 0 / 57px 57px 0 0;
+  min-height: calc(100vh - 146px);
+}
+body.on-chef.chef-home .chef-body { max-width: 760px; margin: 0 auto; }
+
+/* ---------- Fenêtres Paramètres et À propos (même structure) ---------- */
+.bred-modal { background: var(--bred); }
+.bred-modal .modal-head {
+  position: relative; z-index: 1; flex-shrink: 0; align-items: flex-start;
+  min-height: 118px; border-radius: 0; padding: calc(12px + env(safe-area-inset-top, 0px)) 18px 0;
+}
+.bred-modal.hero .modal-head { min-height: 190px; }
+.bred-modal .modal-head h3 { flex: 1; margin: 0; text-align: center; line-height: 42px; }
+.bred-modal .modal-body {
+  position: relative; z-index: 2; flex: 1 0 auto; overflow: visible; margin-top: -40px;
+  padding: 26px 20px 60px; background: var(--sheet-bg);
+  border-radius: 40px 40px 0 0 / 38px 38px 0 0;
+}
+.bred-modal.hero .modal-body { padding-top: 0; }
+.bred-modal .modal-body > * { max-width: 720px; margin-left: auto; margin-right: auto; }
+.bred-modal .cd-hero { max-width: 430px; }
+
+/* Paramètres : sections */
+.st-panel { padding: 0; overflow: visible; }
+.st-panel h2 { display: none; }
+.st-panel .st-sub { margin: 0 2px 16px; font-size: 13.5px; color: var(--text-muted); }
+.st-box { padding: 4px 18px; border: 0; border-radius: 22px; box-shadow: var(--tile-sh); margin-bottom: 16px; }
+.st-seg { background: var(--surface-2); border-radius: 12px; }
+.st-btn { border-radius: 14px; }
+
+/* À propos : cartes */
+.ab-card { margin-top: 16px; padding: 18px; border-radius: 22px; background: var(--surface); box-shadow: var(--tile-sh); text-align: left; }
+.ab-h { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.ab-h i { width: 40px; height: 40px; flex-shrink: 0; border-radius: 13px; background: var(--ac-soft); color: var(--bred-ic); display: flex; align-items: center; justify-content: center; }
+.ab-h b { font-size: 15px; font-weight: 700; color: var(--bred-lab); line-height: 1.25; }
+.ab-card p, .ab-card li { font-size: 13.5px; line-height: 1.65; color: var(--text-muted); }
+.ab-card p + p, .ab-card ul + p, .ab-card p + ul { margin-top: 10px; }
+.ab-card ul { padding-left: 18px; }
+.ab-card li { margin-bottom: 6px; }
+.ab-card li b { color: var(--text-main); }
+.ab-link { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); color: inherit; text-decoration: none; }
+.ab-link.first { border-top: 0; }
+.ab-link i { width: 36px; height: 36px; flex-shrink: 0; border-radius: 12px; background: var(--ac-soft); color: var(--bred-ic); display: flex; align-items: center; justify-content: center; }
+.ab-link span { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ab-link b { font-size: 14px; font-weight: 600; color: var(--text-main); }
+.ab-link small { font-size: 12.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; }
+.ab-link svg.chev { color: var(--text-muted); flex-shrink: 0; }
+.ab-foot { margin-top: 22px; text-align: center; font-size: 12px; color: var(--text-muted); }
+
+/* ---------- Ordinateur ---------- */
+@media (min-width: 1024px) {
+  header { padding-left: 40px; padding-right: 40px; }
+  body.on-chef.chef-home .container { padding: 0 40px 60px; }
+  .cd-dock { display: none; }
+  .cd-nav { grid-template-columns: repeat(5, 1fr); }
+  .bred-modal .cd-nav { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ---------- Petits correctifs ---------- */
+.side-menu:not(.open) { box-shadow: none; }                 /* l'ombre du menu fermé débordait sur le bord gauche */
+.st-row:has(.color-picker-grid) { flex-direction: column; align-items: flex-start; }
+
+/* ---------- V4.3.1 : choix des destinataires (annuaire : Chefs + agents) ---------- */
+.mc-pk { margin-left: auto; }
+.mc-sug .mc-role, .mc-cn small { font-style: normal; }
+.mc-role { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+#mcContacts { position: fixed; inset: 0; z-index: 9300; display: flex; flex-direction: column; background: var(--bg); color: var(--text-main); }
+#mcContacts .mc-cb { display: flex; align-items: center; gap: 8px; padding: 12px 12px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); border-bottom: 1px solid var(--border); }
+#mcContacts .mc-cb b { flex: 1; font-size: 17px; }
+#mcContacts .mc-cb button { width: 44px; height: 44px; border: 0; background: none; color: var(--text-main); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+#mcContacts .mc-cb .mc-cok { width: auto; padding: 0 16px; border-radius: 999px; background: var(--secondary); color: #fff; font-weight: 800; font-size: 14px; }
+#mcContacts .mc-cs { padding: 12px 16px; }
+#mcContacts .mc-cs input { width: 100%; box-sizing: border-box; height: 46px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); color: var(--text-main); padding: 0 14px; font-size: 16px; margin: 0; }
+#mcContacts .mc-cl { flex: 1; overflow: auto; padding: 0 8px 8px; }
+#mcContacts h4 { margin: 14px 12px 4px; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: var(--text-muted); }
+#mcContacts .mc-ct { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: none; color: var(--text-main); padding: 10px 12px; border-radius: 14px; cursor: pointer; text-align: left; }
+#mcContacts .mc-ct:hover, #mcContacts .mc-ct.on { background: var(--surface-2); }
+#mcContacts .mc-ca { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; background: var(--surface-2); border: 1px solid var(--border); }
+#mcContacts .mc-ct.on .mc-ca { background: var(--secondary); color: #fff; border-color: transparent; }
+#mcContacts .mc-cn { display: flex; flex-direction: column; min-width: 0; }
+#mcContacts .mc-cn b, #mcContacts .mc-cn small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#mcContacts .mc-cn small { color: var(--text-muted); }
+#mcContacts .mc-cw { margin: 14px 12px; padding: 12px; border-radius: 12px; background: var(--surface-2); color: var(--text-muted); font-size: 14px; }
+#mcContacts .mc-cf { padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+#mcContacts .mc-cf button { border: 1px solid var(--border); background: var(--surface); color: var(--text-main); border-radius: 12px; padding: 11px; font-weight: 700; cursor: pointer; }
+#mcContacts .mc-cf small { color: var(--text-muted); text-align: center; }

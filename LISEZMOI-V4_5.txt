@@ -1,0 +1,25 @@
+CAT by Manda V4.5 - Operations de l'agent de quart (etape 2)
+
+NOUVEAU : menu > « Operations » (operations.js, nouvelle page + nouvelle table « operations »)
+Choisir l'operation, la date, le(s) groupe(s) ; chaque heure a un bouton « Maintenant ».
+- Remise : heure de remise + heure d'enclenchement disjoncteur.
+- Couplage : heure de demarrage + heure de couplage.
+- Permutation : groupe qui donne la puissance -> groupe qui la recoit ; heures de demarrage, couplage, decouplage, arret moteur ; choix du groupe qui s'arrete.
+- Decouplage : heure de decouplage + heure d'arret moteur.
+- Declenchement / coupure : « Declenchement disjoncteur » ou « Coupure generale » + heure. Une alerte est envoyee au Chef.
+- Arret complet : heure disjoncteur (ouverture) + heure arret moteur (groupe eteint).
+- Releve OBLIGATOIRE apres arret moteur (Permutation, Decouplage, Arret complet) : energie compteur (kWh), heure de marche groupe, gasoil dans le groupe (cm).
+  L'enregistrement est refuse tant qu'un de ces 3 champs est vide.
+- Liste des 15 dernieres operations (suppression possible) ; « Voir tout » ouvre le tableau plein ecran.
+- Les operations apparaissent aussi dans l'Historique global, Parametres > Donnees et la synchronisation Supabase.
+
+TECHNIQUE
+- Base locale passee en version 12 (ajout de la table operations) : migration automatique, les donnees existantes sont conservees.
+- app.js : showPage() relit la liste des pages a chaque fois (sinon la nouvelle page ne se cachait pas).
+- NB : la table « operations » doit etre prise en charge cote Supabase par la table generique « records » (deja le cas : aucune modification serveur).
+
+FICHIERS MODIFIES : app.js, sync.js, index.html, sw.js, version.js (V4.5), manifest.json.
+NOUVEAUX : operations.js, LISEZMOI-V4_5.txt.
+A VENIR : son de notification (messagerie Chef), DPR/PPS en PDF, operations dans la fiche d'exploitation.
+
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

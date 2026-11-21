@@ -1,13 +1,13 @@
 {
-  "name": "CAT by Manda v2.0",
-  "short_name": "CAT v2",
-  "description": "Fiche d'exploitation, relevés et passation - Henri Fraise Fils & Cie Mahanoro",
+  "name": "CAT by Manda V4.7",
+  "short_name": "CAT V4.7",
+  "description": "Fiche d'exploitation, relevés et appoints - Henri Fraise Fils & Cie Mahanoro",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#111318",
-  "theme_color": "#FFCC11",
+  "background_color": "#1C4B9C",
+  "theme_color": "#1C4B9C",
 "icons": [
   {
     "src": "./icon-192.png",

@@ -1,13 +1,22 @@
-const CACHE_NAME = 'cat-manda-v2.5.0'; // OVAO IZY RAHA MISY VERSION VAOVAO
+importScripts('./version.js');
+const CACHE_NAME = 'cat-manda-' + self.APP_VERSION.toLowerCase() + '.0'; // dérivé de version.js
 const DEXIE_URL = 'https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
+  './theme-pro.css',
+  './theme-bred.css',
   './app.js',
+  './operations.js',
   './icons.js',
   './chef.js',
+  './pdf.js',
+  './messenger.js',
   './config.js',
+  './version.js',
+  './icon-192.png',
+  './icon-512.png',
   './logo-cat.png',
   './sync.js',
   './dexie-lite.js',

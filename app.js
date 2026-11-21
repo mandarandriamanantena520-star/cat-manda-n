@@ -12,15 +12,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.side-menu-item').forEach(b => b.classList.toggle('active', (b.getAttribute('onclick') || '').includes("'" + t + "'")));
   }
   function showPage(target) {
+    try { localStorage.setItem('catPage', target); } catch (e) {}
     markNav(target);
+    document.body.classList.toggle('on-chef', target === 'page-chef');
     navBtns.forEach(b => b.classList.remove('active'));
-    pages.forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));   // requête à chaque fois : pages ajoutées par operations.js
     const btn = document.querySelector(`.nav-btn[data-target="${target}"]`);
     if(btn) btn.classList.add('active');
     const page = document.getElementById(target);
     if(page) page.classList.add('active');
     if(target === 'page-fiche' && window.ficheShow) window.ficheShow();
     if(target === 'page-chef' && window.chefShow) window.chefShow();
+    if(target === 'page-messages' && window.CATmsgShow) window.CATmsgShow();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -58,11 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   themeToggle.addEventListener('click', () => {
     body.classList.toggle('dark-mode');
-    localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
+    const tm = body.classList.contains('dark-mode') ? 'dark' : 'light';
+    localStorage.setItem('theme', tm);
+    try { CFG.themeMode = tm; saveCfg(); } catch (e) {}
     updateThemeIcons();
   });
 
-  window.setTheme = function(mode) {
+  window.setTheme = function(mode, fromCfg) {
+    if (!fromCfg) {   // mémorise aussi dans cat_cfg, sinon le thème saute au rechargement
+      try { const c = JSON.parse(localStorage.getItem('cat_cfg') || '{}'); c.themeMode = mode; localStorage.setItem('cat_cfg', JSON.stringify(c)); } catch (e) {}
+      try { CFG.themeMode = mode; } catch (e) {}
+    }
     if(mode === 'dark') body.classList.add('dark-mode');
     else body.classList.remove('dark-mode');
     localStorage.setItem('theme', mode);
@@ -70,6 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.setAccent = function(color) {
+    if (String(color).toUpperCase() === '#FFCC11') color = '#2F5BD3'; // ancien jaune par défaut : migré vers le bleu
+    document.documentElement.style.setProperty('--ac', color);
+    document.documentElement.style.setProperty('--ac-soft', color + '1a');
     document.documentElement.style.setProperty('--secondary', color);
     document.documentElement.style.setProperty('--secondary-soft', color + '1f');
     localStorage.setItem('accent', color);
@@ -103,7 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. DATABASE (IndexedDB)
   // ==========================================
   const db = new Dexie('CAT_System_v2');
-  db.version(6).stores({ 
+  db.version(12).stores({
+    operations: '++id, date, type, groupe',
+    alertes: '++id, ts',
+    consignes: '++id, ts',
+    employes: '++id, uid, nom, poste, statut',
+    employes_rh: '++id, uid',
+    lus: '++id, mid, uid',
+    messages: '++id, ts, to',
+    conges: '++id, start',
+    roster: '++id, from', 
     rapports: '++id, date, statut',
     relevés: '++id, groupe, date, heure',
     appoints: '++id, groupe, date',
@@ -191,7 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const warns = checkAlerts(newReleve);
       if (warns.length && !confirm("ATTENTION : valeur(s) hors limites :\n\n" + warns.join("\n") + "\n\nEnregistrer quand même ?")) return;
       try {
-        await db.relevés.add(newReleve); alert("Relevé enregistré !");
+        await db.relevés.add(newReleve);
+        if (warns.length) { try { await db.alertes.add({ ts: Date.now(), groupe: newReleve.groupe, date: newReleve.date, heure: newReleve.heure, texte: warns.join(' ; '), par: (JSON.parse(localStorage.getItem('catProf') || '{}').nom || '') }); } catch (e) {} }   // remonte au Chef (fil d'alertes)
+        alert("Relevé enregistré !");
         ['r-tension','r-intensite','r-frequence','r-cos','r-puissance','r-energie','r-press-huile','r-temp-eau','r-temp-huile','r-rpm','r-heure-marche','r-press-gasoil','r-air-adm','r-gasoil-mm','r-gasoil-litres']
           .forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
         refreshNow(); loadReleves();
@@ -226,13 +249,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const trf = (r.transfo !== undefined && r.transfo !== '') ? r.transfo : '-';
       const ph = (r.pressHuile !== undefined && r.pressHuile !== '') ? r.pressHuile : '-';
       const pg = (r.pressGasoil !== undefined && r.pressGasoil !== '') ? r.pressGasoil : '-';
+      const air = (r.airAdm !== undefined && r.airAdm !== '') ? r.airAdm : '-';
       const e = (r.energie !== undefined && r.energie !== '') ? r.energie : '-';
       const g = (r.gasoilLitres !== undefined && r.gasoilLitres !== '') ? r.gasoilLitres : '-';
       const hm = (r.heureMarche !== undefined && r.heureMarche !== '') ? r.heureMarche : '-';
 
       tr.innerHTML = `
         <td>${p}</td><td>${t}</td><td>${i}</td><td>${c}</td><td>${rpm}</td><td>${f}</td>
-        <td>${te}</td><td class="col-g3">${th}</td><td>${trf}</td><td>${ph}</td><td>${pg}</td>
+        <td>${te}</td><td class="col-g3">${th}</td><td>${trf}</td><td>${ph}</td><td>${pg}</td><td>${air}</td>
         <td>${e}</td><td>${g}</td><td>${hm}</td>
         <td style="text-align:center; padding: 4px 8px;">
           <button class="btn-del" style="background:#E5484D; color:white; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
@@ -323,10 +347,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function calcAppoint() {
     if(!apAvMm || !apApMm) return;
-    let av = parseFloat(apAvMm.value) || 0; let ap = parseFloat(apApMm.value) || 0;
-    let qte = ap - av;
-    if(apEtat && apEtat.value === "En marche") { let mins = calcDiffMinutes(apHeureAv.value, apHeureAp.value); qte = qte + mins; }
-    apQte.textContent = qte.toFixed(0);
+    const av = parseFloat(apAvMm.value) || 0, ap = parseFloat(apApMm.value) || 0;
+    const marche = apEtat && apEtat.value === "En marche";
+    const mins = marche ? calcDiffMinutes(apHeureAv.value, apHeureAp.value) : 0;
+    apQte.textContent = (ap - av + mins).toFixed(0);
+    const lv = mmToL(av), lp = mmToL(ap), ql = document.getElementById('ap-qte-l');
+    if (ql) ql.textContent = (lv !== '' && lp !== '') ? (lp - lv + mins).toFixed(0) : '-';
   }
 
   if(apAvMm) apAvMm.addEventListener('input', calcAppoint);
@@ -336,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(apEtat) apEtat.addEventListener('change', calcAppoint);
 
   const apCtAv = document.getElementById('ap-ct-av'); const apCtAp = document.getElementById('ap-ct-ap'); const apCtDiff = document.getElementById('ap-ct-diff');
-  function calcAppointCT() { if(!apCtAv || !apCtAp) return; let av = parseInt(apCtAv.value) || 0; let ap = parseInt(apCtAp.value) || 0; apCtDiff.textContent = Math.abs(ap - av); }
+  function calcAppointCT() { if(!apCtAv || !apCtAp) return; let av = parseInt(apCtAv.value) || 0; let ap = parseInt(apCtAp.value) || 0; apCtDiff.textContent = av - ap; }
   if(apCtAv) apCtAv.addEventListener('change', calcAppointCT);
   if(apCtAp) apCtAp.addEventListener('change', calcAppointCT);
 
@@ -407,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dataAp = await db.appoints.toArray();
     dataAp.sort((a, b) => ((b.date || '') + (b.heureAv || '')).localeCompare((a.date || '') + (a.heureAv || '')) || (b.id - a.id));
     fill(document.getElementById('list-appoints'), dataAp, 'appoints',
-      ['Date', 'Grp', 'État', 'Heures', 'Niveau (mm)', 'Qté', 'CT'],
+      ['Date', 'Grp', 'État', 'Heures', 'Niveau (cm)', 'Qté', 'CT'],
       a => [escH(a.date), escH(a.groupe), escH(a.etat), `${escH(a.heureAv || '-')} → ${escH(a.heureAp || '-')}`, `${escH(a.avMm)} → ${escH(a.apMm)}`, `<b>${escH(a.qteMm)}</b>`, `${escH(a.avCt)} → ${escH(a.apCt)}`],
       'Tsy misy appoint mbola voatahiry.');
 
@@ -442,60 +468,38 @@ document.addEventListener('DOMContentLoaded', () => {
     "Filtre à huile": "P55.1808"
   };
 
-  const twType = document.getElementById('tw-type');
   const twRef = document.getElementById('tw-ref');
   const twExtra = document.getElementById('tw-extra-fields');
   const twAgent = document.getElementById('tw-agent');
 
-  if(twType) {
-    twType.addEventListener('change', () => {
-      const type = twType.value;
-      if(refs[type]) { twRef.value = refs[type]; } else { twRef.value = ''; }
-      
-      if(type === "Appoint d'eau") { 
-        twExtra.classList.remove('hidden'); 
-        if(twAgent) twAgent.placeholder = "Nom de la personne";
-      } 
-      else if (type === "Autres") {
-        twExtra.classList.remove('hidden');
-        if(twAgent) twAgent.placeholder = "Préciser le travail...";
-      }
-      else { 
-        twExtra.classList.add('hidden'); 
-        if(twAgent) twAgent.value = ''; 
-      }
-    });
+  const twCbs = () => [...document.querySelectorAll('.tw-cb')];
+  const twSel = () => twCbs().filter(c => c.checked).map(c => c.value);
+  function twRefresh() {
+    const s = twSel();
+    twRef.value = s.length === 1 && refs[s[0]] ? refs[s[0]] : s.filter(x => refs[x]).map(x => refs[x]).join(' / ');
+    const needAgent = s.includes("Appoint d'eau") || s.includes('Autres');
+    twExtra.classList.toggle('hidden', !needAgent);
+    if (twAgent) twAgent.placeholder = s.includes('Autres') ? 'Préciser le travail...' : 'Nom de la personne';
   }
+  twCbs().forEach(c => c.addEventListener('change', () => { twRefresh(); }));
 
   if(document.getElementById('tw-date')) document.getElementById('tw-date').value = todayStr;
 
   const btnSaveTravail = document.getElementById('btn-save-travail');
   if(btnSaveTravail) {
     btnSaveTravail.addEventListener('click', async () => {
-      let finalType = document.getElementById('tw-type').value;
-      let agentVal = document.getElementById('tw-agent').value;
-
-      if (finalType === "Autres") {
-        if (!agentVal) { alert("Précise le travail s'il te plaît."); return; }
-        finalType = agentVal;
-        agentVal = ''; 
-      }
-
-      const newTravail = {
-        date: document.getElementById('tw-date').value,
-        groupe: document.getElementById('tw-groupe').value,
-        hm: document.getElementById('tw-hm').value,
-        type: finalType,
-        ref: document.getElementById('tw-ref').value,
-        qte: document.getElementById('tw-qte').value,
-        agent: agentVal
-      };
+      const sel = twSel();
+      if (!sel.length) { alert('Safidio farafahakeliny ny karazana asa iray.'); return; }
+      const agentVal = document.getElementById('tw-agent').value;
+      if (sel.includes('Autres') && !agentVal) { alert("Précise le travail s'il te plaît."); return; }
+      const base = { date: document.getElementById('tw-date').value, groupe: document.getElementById('tw-groupe').value, hm: document.getElementById('tw-hm').value, qte: document.getElementById('tw-qte').value };
       try {
-        await db.travaux.add(newTravail); 
-        alert("Travail enregistré avec succès !");
-        document.getElementById('tw-hm').value = ''; 
-        document.getElementById('tw-qte').value = ''; 
-        document.getElementById('tw-agent').value = '';
+        for (const ty of sel) {
+          await db.travaux.add({ ...base, type: ty === 'Autres' ? agentVal : ty, ref: refs[ty] || '', agent: ty === 'Appoint d\'eau' ? agentVal : '' });
+        }
+        alert(sel.length + ' travail(aux) enregistré(s) !');
+        twCbs().forEach(c => c.checked = false); twRefresh();
+        ['tw-hm', 'tw-qte', 'tw-agent'].forEach(id => document.getElementById(id).value = '');
         loadTravaux();
       } catch (error) { console.error(error); }
     });
@@ -539,32 +543,42 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // 7. CALENDRIER (Logique 16 Nov = Nan/Jim)
   // ==========================================
-  const ALL = ['Eddy', 'Jimmy', 'Nandrianina', 'Michel']; 
+  // Planning personnalisable : chaque « plan » (table roster, synchronisée) s'applique dès sa date `from`
+  // et hérite des champs qu'il ne redéfinit pas : agents, postes[{nom,debut,fin}], step (pas de rotation),
+  // start (jour de départ du cycle), bloques[{m,d}]. Les plans passés ne sont jamais réécrits.
+  // Les modifications manuelles d'un jour sont des enregistrements roster {kind:'swap', date, poste, agent, orig, by, at}.
+  const DEF_POSTES = [{ nom: 'Jour', debut: '07:00', fin: '17:00' }, { nom: 'Nuit', debut: '17:00', fin: '07:00' }];
+  const DEF_BLOCK = [{ m: 0, d: 1 }, { m: 5, d: 26 }, { m: 11, d: 25 }, { m: 11, d: 31 }];
+  const DEF_ROSTER = [{ from: '1900-01-01', agents: ['Nandrianina', 'Jimmy', 'Eddy'], postes: DEF_POSTES, step: 2, start: '2026-11-16', bloques: DEF_BLOCK }, { from: '2026-11-24', agents: ['Nandrianina', 'Jimmy', 'Eddy', 'Michel'] }];
+  let roster = [];
+  const rosterList = () => { const L = roster.filter(r => !r.kind); return (L.length ? L : DEF_ROSTER).slice().sort((x, y) => x.from.localeCompare(y.from)); };
+  function planFor(d) {
+    const iso = localDateStr(d); let p = {}; rosterList().forEach(r => { if (r.from <= iso) p = Object.assign(p, r); });
+    if (!p.postes || !p.postes.length) p.postes = DEF_POSTES; if (!p.agents) p.agents = [];
+    p.step = +p.step || p.postes.length; p.start = p.start || '2026-11-16'; p.bloques = p.bloques || DEF_BLOCK; return p;
+  }
+  const rosterFor = d => planFor(d).agents;
+  const allNames = () => [...new Set(rosterList().flatMap(r => r.agents || []))];
+  window.CATrosterList = rosterList; window.CATdefRoster = () => DEF_ROSTER; window.CATplanFor = planFor;
+  window.CATswaps = () => roster.filter(r => r.kind === 'swap');
   let viewYear = new Date().getFullYear(); let viewMonth = new Date().getMonth();
-  let leaves = JSON.parse(localStorage.getItem('hffc_leaves') || '[]');
+  let leaves = [];
   const monthsFr = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
   const weekdaysFr = ['LUN','MAR','MER','JEU','VEN','SAM','DIM'];
-  const blockedDates = [ {m:0, d:1}, {m:5, d:26}, {m:11, d:25}, {m:11, d:31} ];
 
   function onLeave(n, d) { return leaves.some(l => n === l.name && d >= new Date(l.start + 'T00:00:00') && d <= new Date(l.end + 'T00:00:00')); }
-  const BASE_DATE = new Date(2026, 10, 16); 
-  
+
+  // Rotation sur les agents PRÉSENTS (congés exclus) : à chaque congé la rotation se recalcule (4 → 3, etc.).
   function getSched(date) {
-    let d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    let diffDays = Math.floor((d - BASE_DATE) / 86400000);
-    
-    if (d < new Date(2026, 10, 24)) {
-      let o = ['Nandrianina', 'Jimmy', 'Eddy'];
-      let idxJour = ((diffDays * 2) % 3 + 3) % 3;
-      let idxNuit = (idxJour + 1) % 3;
-      return { jour: o[idxJour], nuit: o[idxNuit] };
-    } else {
-      let o4 = ['Nandrianina', 'Jimmy', 'Eddy', 'Michel'];
-      let idxJour = ((diffDays * 2) % 4 + 4) % 4;
-      let idxNuit = (idxJour + 1) % 4;
-      return { jour: o4[idxJour], nuit: o4[idxNuit] };
-    }
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate()), iso = localDateStr(d), p = planFor(d);
+    const present = p.agents.filter(n => !onLeave(n, d)), conge = p.agents.filter(n => onLeave(n, d)), n = present.length;
+    const diff = Math.floor((d - new Date(p.start + 'T00:00:00')) / 86400000), base = n ? (((diff * p.step) % n) + n) % n : 0;
+    const slots = p.postes.map((po, i) => ({ poste: po, agent: i < n ? present[(base + i) % n] : '—' }));
+    roster.filter(r => r.kind === 'swap' && r.date === iso).forEach(w => { const sl = slots[w.poste]; if (sl) { sl.orig = sl.orig || sl.agent; sl.agent = w.agent; sl.by = w.by; sl.at = w.at; } });
+    const used = new Set(slots.map(x => x.agent));
+    return { slots, repos: present.filter(a => !used.has(a)), conge, plan: p, jour: slots[0].agent, nuit: slots[slots.length - 1].agent };
   }
+  window.CATsched = getSched;
 
   function fmtLong(d) { return weekdaysFr[(d.getDay()+6)%7] + ' ' + d.getDate() + ' ' + monthsFr[d.getMonth()] + ' ' + d.getFullYear(); }
 
@@ -593,7 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
       div.className = 'day';
       if (isO) div.style.opacity = '0.4';
       if (d.toDateString() === todayObj.toDateString()) div.classList.add('today');
-      if (leaves.length) { const sc = getSched(d); if (onLeave(sc.jour, d) || onLeave(sc.nuit, d)) div.style.borderColor = '#E5484D'; }
+      if (leaves.length) { const sc = getSched(d); if (sc.conge.length) div.style.borderColor = '#E5484D'; if (sc.slots.some(x => x.orig)) div.style.borderColor = '#FFCC11'; }
       div.innerHTML = `<div>${d.getDate()}</div>`;
       div.addEventListener('click', () => {
         const iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -614,26 +628,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // 8. MODAL JOUR
   // ==========================================
-  // Si l'agent prévu est en congé => remplaçant (1er agent libre). Ovay ny fitsipika raha hafa.
-  function resolveLeave(d, s) {
-    const out = { jour: { name: s.jour }, nuit: { name: s.nuit } };
-    const michelOk = d >= new Date(2026, 10, 24);
-    ['jour', 'nuit'].forEach(k => {
-      if (onLeave(s[k], d)) {
-        const pool = ALL.filter(n => n !== s.jour && n !== s.nuit && !onLeave(n, d) && (n !== 'Michel' || michelOk));
-        out[k] = { name: pool[0] || '—', replaced: s[k] };
-      }
-    });
-    return out;
-  }
+  function resolveLeave(d, s) { return { jour: { name: s.jour }, nuit: { name: s.nuit } }; }   // compat fiche : 1er et dernier poste
+  const fdt = ts => { const x = new Date(ts); return x.toLocaleDateString('fr-FR') + ' ' + x.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); };
   function openModal(iso) {
-    const d = new Date(iso + 'T00:00:00'); const s = getSched(d); const r = resolveLeave(d, s);
+    const d = new Date(iso + 'T00:00:00'), s = getSched(d);
     document.getElementById('modalTitle').textContent = fmtLong(d);
     document.getElementById('modalSubtitle').textContent = 'Mahanoro';
-    document.getElementById('modalAgents').innerHTML = `
-      <div class="agent-row" style="margin-bottom:10px;"><div><b>${r.jour.name}</b><small>Jour 7h-17h${r.jour.replaced ? ' · remplace ' + r.jour.replaced + ' (en congé)' : ''}</small></div></div>
-      <div class="agent-row"><div><b>${r.nuit.name}</b><small>Nuit 17h-7h${r.nuit.replaced ? ' · remplace ' + r.nuit.replaced + ' (en congé)' : ''}</small></div></div>
-    `;
+    document.getElementById('modalAgents').innerHTML = s.slots.map(x => `<div class="agent-row" style="margin-bottom:10px;"><div><b>${escH(x.agent)}</b><small>${escH(x.poste.nom)} ${x.poste.debut}–${x.poste.fin}${x.orig ? ' · remplace ' + escH(x.orig) + ' (modifié' + (x.by ? ' par ' + escH(x.by) : '') + (x.at ? ' le ' + fdt(x.at) : '') + ')' : ''}</small></div></div>`).join('')
+      + (s.repos.length ? `<p style="font-size:13px;color:var(--text-muted)">Repos : ${s.repos.map(escH).join(', ')}</p>` : '') + (s.conge.length ? `<p style="font-size:13px;color:#E5484D">En congé : ${s.conge.map(escH).join(', ')}</p>` : '');
     document.getElementById('dayModal').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -646,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // 9. MODAL CONGÉS
   // ==========================================
-  const openLeaveModal = () => { document.getElementById('leaveModal').classList.add('open'); document.body.style.overflow = 'hidden'; renderLeaveList(); };
+  const openLeaveModal = () => { if (document.body.dataset.role === 'agent') return; const ln = document.getElementById('leaveName'); if (ln) ln.innerHTML = allNames().map(n => `<option>${escH(n)}</option>`).join(''); document.getElementById('leaveModal').classList.add('open'); document.body.style.overflow = 'hidden'; renderLeaveList(); };
   const closeLeaveModal = () => { document.getElementById('leaveModal').classList.remove('open'); document.body.style.overflow = ''; };
   const btnOpenLeaves = document.getElementById('btnOpenLeaves'); 
   if(btnOpenLeaves) btnOpenLeaves.addEventListener('click', openLeaveModal);
@@ -660,31 +662,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!leaves.length) { el.innerHTML = '<p style="color:#888;font-size:14px;padding:10px 0">Aucun congé enregistré.</p>'; return; }
     el.innerHTML = leaves.map((l, i) => `<div class="list-item" style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; padding:10px; border:1px solid var(--border); border-radius:6px;"><span><b style="font-size:15px;">${l.name}</b><br><small style="font-size:13px;">${l.start} → ${l.end}</small></span><button type="button" class="del" data-del="${i}" style="background:#E5484D; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:12px;">Suppr.</button></div>`).join('');
     el.querySelectorAll('[data-del]').forEach(b => {
-      b.addEventListener('click', () => {
-        leaves.splice(parseInt(b.getAttribute('data-del')), 1);
-        localStorage.setItem('hffc_leaves', JSON.stringify(leaves));
-        renderCal(); renderLeaveList();
+      b.addEventListener('click', async () => {
+        const l = leaves[parseInt(b.getAttribute('data-del'))]; if (l) await db.conges.delete(l.id);
+        await loadCal(); renderLeaveList();
       });
     });
   }
 
   const btnAddLeave = document.getElementById('btnAddLeave');
   if(btnAddLeave) {
-    btnAddLeave.addEventListener('click', () => {
+    btnAddLeave.addEventListener('click', async () => {
       const n = document.getElementById('leaveName').value; const s = document.getElementById('leaveStart').value; const e = document.getElementById('leaveEnd').value;
       if (!s || !e || e < s) { alert('Dates invalides.'); return; }
       let cur = new Date(s + 'T00:00:00'); let end = new Date(e + 'T00:00:00'); let isBlocked = false;
-      while(cur <= end) { if (blockedDates.some(b => b.m === cur.getMonth() && b.d === cur.getDate())) { isBlocked = true; break; } cur.setDate(cur.getDate() + 1); }
-      if (isBlocked) { alert("REFUSÉ : Tsy azo atao ny miala sasatra amin'ny 01 Janvier, 26 Juin, 25 Décembre na 31 Décembre."); return; }
-      leaves.push({ name: n, start: s, end: e }); localStorage.setItem('hffc_leaves', JSON.stringify(leaves));
-      renderCal(); renderLeaveList(); alert(n + ' : Congé ajouté. Le calendrier a été mis à jour.'); closeLeaveModal();
+      while(cur <= end) { if (planFor(cur).bloques.some(b => b.m === cur.getMonth() && b.d === cur.getDate())) { isBlocked = true; break; } cur.setDate(cur.getDate() + 1); }
+      if (isBlocked) { alert('REFUSÉ : le congé touche un jour bloqué (' + planFor(new Date(s + 'T00:00:00')).bloques.map(b => String(b.d).padStart(2, '0') + '/' + String(b.m + 1).padStart(2, '0')).join(', ') + '). Tsy azo atao ny miala sasatra amin\'ireo andro ireo.'); return; }
+      await db.conges.add({ name: n, start: s, end: e });
+      await loadCal(); renderLeaveList(); alert(n + ' : Congé ajouté. Le calendrier a été mis à jour.'); closeLeaveModal();
     });
   }
   if(document.getElementById('leaveStart')) document.getElementById('leaveStart').value = todayStr;
   if(document.getElementById('leaveEnd')) document.getElementById('leaveEnd').value = todayStr;
 
   // ==========================================
-  // 10. FICHE D'EXPLOITATION (kopia ny taratasy, feno ho azy avy amin'ny Passation/Relevés/Travaux)
+  // 10. FICHE D'EXPLOITATION (kopia ny taratasy, feno ho azy avy amin'ny Appoint/Relevés/Travaux)
   // ==========================================
   const fichePage = document.getElementById('page-fiche');
   const G = [1, 2, 3];
@@ -698,7 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const put = (k, v) => { const e = el(k); if (e) e.value = v; };
   const pre = (k, v) => { const e = el(k); if (e && e.value === '' && v != null && v !== '' && !(typeof v === 'number' && isNaN(v))) e.value = v; };
 
-  // Citerne + pige ao amin'ny Transfert (Passation)
+  // Citerne + pige ao amin'ny Transfert (Appoint)
   (function () {
     const a = document.getElementById('tr-ct-av');
     if (!a || document.getElementById('tr-citerne')) return;
@@ -720,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <tr><th class="l">Index kWh JIRAMA</th>${G.map(n => n === 3 ? X : `<td>${I('jir' + t + '_' + n)}</td>`).join('')}</tr>
       <tr><th class="l">NIVEAU GO</th>${G.map(n => `<td>${I('niv' + t + '_' + n)}</td>`).join('')}</tr></table>`;
     let trR = '', apR = '';
-    for (let i = 1; i <= nTr; i++) trR += `<tr>${['cit', 'pav', 'pap', 'cpt', 'cav', 'cap'].map(f => `<td>${A('tr' + i + '_' + f)}</td>`).join('')}</tr>`;
+    for (let i = 1; i <= nTr; i++) trR += `<tr>${['cit', 'pav', 'pap', 'cpt', 'cav', 'cap', 'qte'].map(f => `<td>${A('tr' + i + '_' + f)}</td>`).join('')}</tr>`;
     for (let i = 1; i <= nAp; i++) {
       const c = s => G.map(n => ['av', 'ap', 'q'].map(f => `<td>${A(`ap${n}_${i}_${f}${s}`)}</td>`).join('')).join('');
       apR += `<tr><th class="l" rowspan="2">${i}${i === 1 ? ' èr' : ' ém'} Appt</th>${c('L')}</tr><tr>${c('C')}</tr>`;
@@ -746,7 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <tr><th class="l">AUX</th><td colspan="3">${T('aux')}</td></tr><tr><th class="l">COMPT GN</th><td colspan="3">${T('cgn')}</td></tr></table></div></div>
     <div class="fp-band"><div>
       <div class="fp-sub">TRANSFERT GO : CITERNE VERS CUVE 2 500 L</div>
-      <table class="fp-t"><tr><th>CITERNE</th><th>PIGE AV</th><th>PIGE AP</th><th>COMPTEUR</th><th>CUVE T AV</th><th>CUVE T AP</th></tr>${trR}</table>
+      <table class="fp-t"><tr><th>CITERNE</th><th>PIGE AV</th><th>PIGE AP</th><th>COMPTEUR</th><th>CUVE T AV</th><th>CUVE T AP</th><th>QTÉ</th></tr>${trR}</table>
       <div class="fp-sub">APPOINT GO GROUPE <small>(ligne 1 = litres groupe · ligne 2 = Cuve T en cm)</small></div>
       <table class="fp-t"><tr><th rowspan="2"></th>${G.map(n => `<th colspan="3">GE${n}</th>`).join('')}</tr>
         <tr>${G.map(() => '<th>AVANT</th><th>APRES</th><th>Qté (L)</th>').join('')}</tr>${apR}</table></div>
@@ -818,7 +819,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const d = curDate, D = await ficheData(d);
     const saved = reset ? null : await db.fiches.where('date').equals(d).first();
     const byG = { 1: [], 2: [], 3: [] };
-    D.aps.forEach(a => { const n = +String(a.groupe).slice(1); if (byG[n]) byG[n].push(a); });
+    D.aps.forEach(a => { const n = +String(a.groupe).replace(/\D/g, ''); if (byG[n]) byG[n].push(a); });
     const body = document.getElementById('fp-body');
     body.innerHTML = buildFiche(Math.max(3, ...G.map(n => byG[n].length)), Math.max(2, D.trs.length));
     if (saved && saved.vals) Object.keys(saved.vals).forEach(k => { const e = el(k); if (e && !e.readOnly) e.value = saved.vals[k]; });
@@ -829,18 +830,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const v = prev.vals[f + '1_' + n]; if (v !== undefined && v !== '') put(f + '0_' + n, v);
     }));
 
-    // Appoint (avy amin'ny Passation) : ligne 1 = litres groupe (après conversion), ligne 2 = CT
+    // Appoint (avy amin'ny Appoint) : ligne 1 = litres groupe (après conversion), ligne 2 = CT
     G.forEach(n => byG[n].forEach((a, i) => {
       const av = fNum(a.avMm), ap = fNum(a.apMm), qm = fNum(a.qteMm), avL = mmToLs(av), apL = mmToLs(ap);
       const dm = String(a.duree || '').match(/^(\d+):(\d+)$/), chr = dm ? (+dm[1] + +dm[2] / 60) : 0;   // Durée (chrono MM:SS) → minitra
-      const mins = chr > 0 ? chr : calcDiffMinutes(a.heureAv, a.heureAp);                               // raha tsy misy chrono: Heure AV → AP
+      const marche = a.etat === 'En marche';                                                          // en arrêt : Après − Avant seulement
+      const mins = marche ? (chr > 0 ? chr : calcDiffMinutes(a.heureAv, a.heureAp)) : 0;               // en marche : + durée (chrono, sinon Heure AV → AP)
       const qL = (apL != null && avL != null) ? (apL - avL) + mins : null;
       const k = `ap${n}_${i + 1}_`, cA = fNum(a.avCt), cP = fNum(a.apCt);
       put(k + 'avL', fmt(avL)); put(k + 'apL', fmt(apL)); put(k + 'qL', fmt(qL));
-      put(k + 'avC', a.avCt ?? ''); put(k + 'apC', a.apCt ?? ''); put(k + 'qC', (cA != null && cP != null) ? Math.abs(cP - cA) : '');
+      put(k + 'avC', a.avCt ?? ''); put(k + 'apC', a.apCt ?? ''); put(k + 'qC', (cA != null && cP != null) ? (cA - cP) : '');
     }));
     // Transfert (citerne iza, pige, compteur, cuve T)
-    D.trs.forEach((t, i) => { const k = 'tr' + (i + 1) + '_'; put(k + 'cit', t.citerne || '—'); put(k + 'pav', t.pigeAv ?? ''); put(k + 'pap', t.pigeAp ?? ''); put(k + 'cpt', t.compteurValeur ?? ''); put(k + 'cav', t.avCt ?? ''); put(k + 'cap', t.apCt ?? ''); });
+    D.trs.forEach((t, i) => { const k = 'tr' + (i + 1) + '_'; put(k + 'cit', t.citerne || '—'); put(k + 'pav', t.pigeAv ?? ''); put(k + 'pap', t.pigeAp ?? ''); put(k + 'cpt', t.compteurValeur ?? ''); put(k + 'cav', t.avCt ?? ''); put(k + 'cap', t.apCt ?? ''); put(k + 'qte', t.qte ?? ''); });
     // Pige : côté gauche (AV) = mpiasa jour (06h–17h) · côté droit (AP) = mpiasa alina (17h–06h)
     const mn = t => (t.heure && /^\d{1,2}:\d{2}/.test(t.heure)) ? (+t.heure.slice(0, 2)) * 60 + (+t.heure.slice(3, 5)) : null;
     const isDay = t => { const m = mn(t); return m != null && m >= 360 && m < 1020; };
@@ -875,7 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const h = p.offsetHeight, w = p.offsetWidth; p.style.zoom = z;
     if (!h || !w) return;
     const k = Math.min(1077 / w, 735 / h) * 0.97;
-    p.style.setProperty('--pz', Math.max(0.3, Math.min(1.2, k)).toFixed(3));
+    p.style.setProperty('--pz', Math.max(0.3, Math.min(3, k)).toFixed(3));
   }
   window.addEventListener('beforeprint', fitPrint);
   window.addEventListener('afterprint', () => { const p = document.getElementById('fp-paper'); if (p) p.classList.remove('pm'); });
@@ -884,7 +886,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (fichePage) {
     fichePage.innerHTML = `<div class="fp-bar">
-      <button data-act="zo">−</button><button data-act="zi">＋</button><button data-act="fit">Ajuster</button>
       <button data-act="reset">${ICO('refresh',14)} Actualiser</button><button class="y" id="btn-save-fiche">Enregistrer</button><button id="btn-print-fiche">Imprimer</button></div>
       <div class="fp-scroll" id="fp-scroll"><div class="fp-paper" id="fp-paper"><div id="fp-body"></div></div></div>`;
     fichePage.addEventListener('input', e => { if (e.target.dataset && e.target.dataset.k) compute(); });
@@ -894,10 +895,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (b.dataset.act === 'zi') zoomFiche(1.2);
       if (b.dataset.act === 'zo') zoomFiche(1 / 1.2);
       if (b.dataset.act === 'fit') { userZoom = false; fitFiche(); }
-      if (b.dataset.act === 'reset') { if (confirm('Averina avy amin\'ny Passation/Relevés ny fiche ve?')) loadFiche(true); }
+      if (b.dataset.act === 'reset') { if (confirm('Averina avy amin\'ny Appoint/Relevés ny fiche ve?')) loadFiche(true); }
       if (b.id === 'btn-print-fiche') window.print();
       if (b.id === 'btn-save-fiche') {
         const vals = {}; fichePage.querySelectorAll('[data-k]').forEach(x => vals[x.dataset.k] = x.value);
+        const prevRec = await db.fiches.where('date').equals(curDate).first();
+        if (prevRec && prevRec.vals) Object.keys(prevRec.vals).forEach(k => { if (!(k in vals)) vals[k] = prevRec.vals[k]; });   // garde les compléments du Chef
         const rec = { date: curDate, statut: 'soumise', vals, totalProd: vals.rh_prod, totalGo: vals.rh_consom, csp: vals.rh_csp };
         try {
           const old = await db.fiches.where('date').equals(curDate).first();
@@ -906,6 +909,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) { console.error(err); alert("Erreur lors de l'enregistrement."); }
       }
     });
+    (function () {   // zoom par pincement (2 doigts)
+      const sc = document.getElementById('fp-scroll'), p = document.getElementById('fp-paper'); let d0 = 0, z0 = 1;
+      const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+      sc.addEventListener('touchstart', e => { if (e.touches.length === 2) { d0 = dist(e.touches); z0 = parseFloat(p.style.zoom) || 1; } }, { passive: true });
+      sc.addEventListener('touchmove', e => { if (e.touches.length === 2 && d0) { userZoom = true; p.style.zoom = Math.max(0.3, Math.min(CFG.ficheZoom || 3, z0 * dist(e.touches) / d0)); } }, { passive: true });
+      sc.addEventListener('touchend', () => { d0 = 0; }, { passive: true });
+    })();
     window.ficheOpen = d => { curDate = d; window.goToPage('page-fiche'); };
     window.ficheShow = async () => { await loadFiche(); if (!userZoom) fitFiche(); };
     window.addEventListener('resize', () => { if (!userZoom && fichePage.classList.contains('active')) fitFiche(); });
@@ -949,10 +959,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="font-size:15px; line-height:1.8;">
             <p><b>Groupe:</b> ${currentEditData.groupe} (${currentEditData.etat})</p>
             <p><b>Heures:</b> ${currentEditData.heureAv||'-'} → ${currentEditData.heureAp||'-'} (${currentEditData.duree})</p>
-            <p><b>Niveaux:</b> ${currentEditData.avMm} → ${currentEditData.apMm} mm (Qte: ${currentEditData.qteMm})</p>
+            <p><b>Niveaux:</b> ${currentEditData.avMm} → ${currentEditData.apMm} cm (Qte: ${currentEditData.qteMm})</p>
             <p><b>CT:</b> ${currentEditData.avCt} → ${currentEditData.apCt}</p><p><b>Obs:</b> ${currentEditData.obs||'-'}</p>
           </div>
         `;
+      } else if (table === 'operations') {
+        contentHTML = `<div style="font-size:15px; line-height:1.8;"><p>${escH(window.CATopResume ? window.CATopResume(currentEditData) : '')}</p><p><b>Agent:</b> ${escH(currentEditData.par || '-')}</p><p><b>Obs:</b> ${escH(currentEditData.obs || '-')}</p></div>`;
       } else if (table === 'transferts') {
         contentHTML = `
           <div style="font-size:15px; line-height:1.8;">
@@ -1023,10 +1035,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Colonnes de chaque tableau (1re colonne = date)
   const HIST = {
     'relevés': { label: 'Relevés', ico: ICO('list',22),
-      cols: [['Date', r => r.date], ['Heure', r => r.heure], ['Grp', r => r.groupe], ['Puiss. (MW)', r => r.puissance], ['Tension', r => r.tension], ['Intens.', r => r.intensite], ['Cos φ', r => r.cos], ['RPM', r => r.rpm], ['Fréq.', r => r.frequence], ['T° Eau', r => r.tempEau], ['T° Huile', r => r.tempHuile], ['Transfo', r => r.transfo], ['P. Huile', r => r.pressHuile], ['P. Gasoil', r => r.pressGasoil], ['Énergie', r => r.energie], ['Gasoil', r => r.gasoilLitres], ['H. Marche', r => r.heureMarche]],
+      cols: [['Date', r => r.date], ['Heure', r => r.heure], ['Grp', r => r.groupe], ['Puiss. (MW)', r => r.puissance], ['Tension', r => r.tension], ['Intens.', r => r.intensite], ['Cos φ', r => r.cos], ['RPM', r => r.rpm], ['Fréq.', r => r.frequence], ['T° Eau', r => r.tempEau], ['T° Huile', r => r.tempHuile], ['Transfo', r => r.transfo], ['P. Huile', r => r.pressHuile], ['P. Gasoil', r => r.pressGasoil], ['Air ADM (°C)', r => r.airAdm], ['Énergie', r => r.energie], ['Gasoil', r => r.gasoilLitres], ['H. Marche', r => r.heureMarche]],
       det: r => ['Relevé ' + r.groupe, r.date + ' à ' + r.heure] },
     appoints: { label: 'Appoints', ico: ICO('fuel',22),
-      cols: [['Date', a => a.date], ['Grp', a => a.groupe], ['État', a => a.etat], ['Heure AV', a => a.heureAv], ['Heure AP', a => a.heureAp], ['Durée', a => a.duree], ['Niv. AV (mm)', a => a.avMm], ['Niv. AP (mm)', a => a.apMm], ['Qté', a => a.qteMm], ['CT AV', a => a.avCt], ['CT AP', a => a.apCt], ['Obs.', a => a.obs]],
+      cols: [['Date', a => a.date], ['Grp', a => a.groupe], ['État', a => a.etat], ['Heure AV', a => a.heureAv], ['Heure AP', a => a.heureAp], ['Durée', a => a.duree], ['Niv. AV (cm)', a => a.avMm], ['Niv. AP (cm)', a => a.apMm], ['Qté', a => a.qteMm], ['CT AV', a => a.avCt], ['CT AP', a => a.apCt], ['Obs.', a => a.obs]],
       det: a => ['Appoint ' + a.groupe, a.date] },
     transferts: { label: 'Transferts', ico: ICO('refresh',22),
       cols: [['Date', t => t.date], ['Heure', t => t.heure], ['Citerne', t => t.citerne], ['Pige AV', t => t.pigeAv], ['Pige AP', t => t.pigeAp], ['CT AV', t => t.avCt], ['CT AP', t => t.apCt], ['Qté (cm)', t => t.qte], ['Compteur', t => t.compteurValeur], ['Total compteur', t => t.compteurTotal], ['Obs.', t => t.obs]],
@@ -1034,6 +1046,9 @@ document.addEventListener('DOMContentLoaded', () => {
     travaux: { label: 'Travaux', ico: ICO('tool',22),
       cols: [['Date', t => t.date], ['Grp', t => t.groupe], ['HM', t => t.hm], ['Travail', t => t.type], ['Agent', t => t.agent], ['Référence', t => t.ref], ['Qté', t => t.qte]],
       det: t => ['Travail ' + t.type, t.date] },
+    operations: { label: 'Opérations', ico: ICO('clock',22),
+      cols: [['Date', o => o.date], ['Opération', o => window.CATopLabel ? window.CATopLabel(o) : o.type], ['Grp', o => o.type === 'permutation' ? o.groupe + ' → ' + o.groupe2 : o.groupe], ['Heures', o => window.CATopResume ? window.CATopResume(o).split(' | ')[0] : ''], ['Énergie (kWh)', o => o.en], ['HM', o => o.hm], ['Gasoil (cm)', o => o.go], ['Agent', o => o.par], ['Obs.', o => o.obs]],
+      det: o => [(window.CATopLabel ? window.CATopLabel(o) : o.type) + ' ' + (o.groupe || ''), o.date] },
     fiches: { label: 'Fiches', ico: ICO('file',22),
       cols: [['Date', f => f.date], ['Production (kWh)', f => f.totalProd], ['Consommation GO (L)', f => f.totalGo], ['CSP (g/kWh)', f => f.csp]],
       det: null }
@@ -1065,6 +1080,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function tvRender() {
     const terms = normT(TV.q).split(/\s+/).filter(Boolean);
     let rows = terms.length ? TV.all.filter(x => terms.every(t => x.text.includes(t))) : TV.all.slice();
+    const fg = tvEl('tvFGrp') ? tvEl('tvFGrp').value : '', fd = tvEl('tvFDate') ? tvEl('tvFDate').value : '', fh = tvEl('tvFHeure') ? tvEl('tvFHeure').value : '';
+    if (fg) rows = rows.filter(x => (x.r.groupe || '') === fg);
+    if (fd) rows = rows.filter(x => (x.r.date || '') === fd);
+    if (fh) rows = rows.filter(x => String(x.r.heure || x.r.heureAv || '').slice(0, 2) === fh.slice(0, 2));
     if (TV.sc >= 0) {
       const c = TV.sc, num = v => { const n = Number(String(v).replace(',', '.')); return (v === '' || isNaN(n)) ? null : n; };
       rows.sort((a, b) => {
@@ -1072,6 +1091,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return TV.sd * ((nA != null && nB != null) ? nA - nB : String(A).localeCompare(String(B), 'fr', { numeric: true }));
       });
     }
+    const nf = [fg, fd, fh].filter(Boolean).length;
+    if (tvEl('tvFilterBadge')) { tvEl('tvFilterBadge').textContent = nf; tvEl('tvFilterBadge').classList.toggle('hidden', !nf); tvEl('tvFilterBtn').classList.toggle('active', nf > 0); }
     TV.rows = rows; TV.shown = rows.slice(0, TV.limit);
     const tbl = tvEl('tvTable');
     tbl.classList.toggle('tv-all', TV.cat === 'all');
@@ -1088,7 +1109,8 @@ document.addEventListener('DOMContentLoaded', () => {
   window.openTableView = async function (cat, q) {
     TV.cat = cat; TV.q = q || ''; TV.sc = -1; TV.sd = 1; TV.limit = 500;
     tvEl('tvTitle').textContent = cat === 'all' ? 'Recherche globale' : HIST[cat].label;
-    tvEl('tvSearch').value = TV.q;
+    tvEl('tvSearch').value = TV.q; ['tvFGrp', 'tvFDate', 'tvFHeure'].forEach(id => { if (tvEl(id)) tvEl(id).value = ''; });
+    if (tvEl('tvFilterPanel')) { tvEl('tvFilterPanel').classList.add('hidden'); tvEl('tvFilterBtn').setAttribute('aria-expanded', 'false'); }
     await tvLoad(); tvRender();
     tvEl('tvOverlay').classList.add('open'); document.body.style.overflow = 'hidden';
     tvEl('tvOverlay').querySelector('.tv-body').scrollTop = 0;
@@ -1105,6 +1127,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (tvEl('tvOverlay')) {
     tvEl('tvBack').addEventListener('click', closeTV);
     tvEl('tvSearch').addEventListener('input', e => { TV.q = e.target.value; TV.limit = 500; tvRender(); });
+    ['tvFGrp', 'tvFDate', 'tvFHeure'].forEach(id => tvEl(id).addEventListener('input', () => { TV.limit = 500; tvRender(); }));
+    tvEl('tvFReset').addEventListener('click', () => { ['tvFGrp', 'tvFDate', 'tvFHeure'].forEach(id => tvEl(id).value = ''); tvRender(); });
+    tvEl('tvFilterBtn').addEventListener('click', () => {
+      const open = tvEl('tvFilterPanel').classList.toggle('hidden') === false;
+      tvEl('tvFilterBtn').setAttribute('aria-expanded', String(open));
+    });
     tvEl('tvMore').addEventListener('click', () => { TV.limit += 500; tvRender(); });
     tvEl('tvTable').querySelector('thead').addEventListener('click', e => {
       const th = e.target.closest('th[data-c]'); if (!th) return;
@@ -1155,15 +1183,45 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // PARAMÈTRES (version professionnelle)
   // ==========================================
-  let CFG = { themeMode: localStorage.getItem('theme') === 'dark' ? 'dark' : 'light', fontSize: 15, densite: 830, alerts: {}, ...JSON.parse(localStorage.getItem('cat_cfg') || '{}') };
+  let CFG = { themeMode: localStorage.getItem('theme') === 'dark' ? 'dark' : 'light', fontSize: 15, ficheZoom: 3, densite: 830, alerts: {}, pinHash: '', autoLock: 0, seuilGo: '', capCuve: '', groupes: { G1: true, G2: true, G3: true }, rappel: false, ...JSON.parse(localStorage.getItem('cat_cfg') || '{}') };
   const saveCfg = () => localStorage.setItem('cat_cfg', JSON.stringify(CFG));
+  window.CATcfg = () => CFG;
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
   function applyCfg() {
     document.body.style.fontSize = CFG.fontSize + 'px';
-    window.setTheme(CFG.themeMode === 'auto' ? (mq.matches ? 'dark' : 'light') : CFG.themeMode);
+    window.setTheme(CFG.themeMode === 'auto' ? (mq.matches ? 'dark' : 'light') : CFG.themeMode, true);
   }
   mq.addEventListener && mq.addEventListener('change', () => { if (CFG.themeMode === 'auto') applyCfg(); });
   applyCfg();
+
+  const sha = async s => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('cat:' + s)))].map(b => b.toString(16).padStart(2, '0')).join('');
+  async function askPin(msg) {
+    if (!CFG.pinHash) return true;
+    const p = prompt(msg || 'Code PIN :'); if (p === null) return false;
+    if (await sha(p) === CFG.pinHash) return true;
+    alert('Code PIN incorrect.'); return false;
+  }
+  window.askPin = askPin;
+  function applyGroupes() {
+    const g = CFG.groupes || {};
+    document.querySelectorAll('#r-groupe option, #ap-groupe option, #tw-groupe option, #filter-groupe option').forEach(o => {
+      if (/^G[123]$/.test(o.value)) { const off = g[o.value] === false; o.hidden = off; o.disabled = off; }
+    });
+    ['r-groupe', 'ap-groupe', 'tw-groupe'].forEach(id => { const s = document.getElementById(id); if (s && s.selectedOptions[0] && s.selectedOptions[0].disabled) { const f = [...s.options].find(o => !o.disabled); if (f) s.value = f.value; } });
+  }
+  applyGroupes();
+  // rappel hebdomadaire de sauvegarde
+  setTimeout(() => {
+    if (!CFG.rappel) return;
+    const last = localStorage.getItem('cat_last_backup_ts'), age = last ? (Date.now() - (+last)) / 864e5 : 99;
+    if (age >= 7 && confirm('Rappel : sauvegarde non faite depuis ' + (last ? Math.floor(age) + ' jours' : 'longtemps') + '. Exporter maintenant ?')) window.exportBackup();
+  }, 2500);
+  // verrouillage automatique au retour d'arrière-plan (nécessite l'empreinte activée)
+  let hiddenAt = 0;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { hiddenAt = Date.now(); return; }
+    if (CFG.autoLock > 0 && hiddenAt && Date.now() - hiddenAt > CFG.autoLock * 60000 && window.CATlock) window.CATlock();
+  });
 
   const ALERT_DEFS = [['tension', 'Tension (V)'], ['frequence', 'Fréquence (Hz)'], ['cos', 'Cos φ'], ['tempEau', 'Temp. eau (°C)'], ['pressHuile', 'Pression huile (kPa)'], ['pressGasoil', 'Pression gasoil (kPa)']];
   function checkAlerts(r) {
@@ -1174,24 +1232,40 @@ document.addEventListener('DOMContentLoaded', () => {
       if (a.min != null && v < a.min) out.push(`${l} = ${v}  (min ${a.min})`);
       if (a.max != null && v > a.max) out.push(`${l} = ${v}  (max ${a.max})`);
     });
+    const gl = fNum(r.gasoilLitres), sg = fNum(CFG.seuilGo);
+    if (gl != null && sg != null && gl < sg) out.push(`Niveau gasoil = ${gl} L  (seuil ${sg} L)`);
     return out;
   }
 
   let sm = document.getElementById('settingsModal');
   if (!sm) { sm = document.createElement('div'); sm.id = 'settingsModal'; sm.className = 'modal-overlay'; document.body.appendChild(sm); }
 
-  let stTab = 'apparence';
+  let stTab = 'menu';
   async function renderSettings() {
-    const tbls = [['relevés', 'Relevés horaires'], ['appoints', 'Appoints'], ['transferts', 'Transferts'], ['travaux', 'Travaux'], ['fiches', 'Fiches d\'exploitation']];
+    const tbls = [['relevés', 'Relevés horaires'], ['appoints', 'Appoints'], ['transferts', 'Transferts'], ['travaux', 'Travaux'], ['operations', 'Opérations'], ['fiches', 'Fiches d\'exploitation']];
     const cnt = {}; for (const [t] of tbls) cnt[t] = await db[t].count();
     const seg = (id, opts, cur) => `<div class="st-seg" data-seg="${id}">${opts.map(([v, l]) => `<button type="button" data-v="${v}" class="${String(cur) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
-    const TABS = [['apparence', 'palette', 'Apparence'], ['calculs', 'calc', 'Calculs'], ['alertes', 'bell', 'Alertes'], ['sauvegarde', 'save', 'Sauvegarde'], ['donnees', 'folder', 'Données'], ['apropos', 'info', 'À propos']];
+    const TABS = [['apparence', 'palette', 'Apparence'], ['securite', 'shield', 'Sécurité'], ['technique', 'tool', 'Technique'], ['calculs', 'calc', 'Calculs'], ['alertes', 'bell', 'Alertes'], ['sauvegarde', 'save', 'Sauvegarde'], ['donnees', 'folder', 'Données'], ['apropos', 'info', 'À propos']];   // 'apropos' ouvre la fenêtre À propos
     const P = {
       apparence: `<h2>Apparence</h2><p class="st-sub">Thème, taille du texte et couleur de l'application.</p>
         <div class="st-box">
           <div class="st-row"><span>Thème</span>${seg('theme', [['light', 'Clair'], ['dark', 'Sombre'], ['auto', 'Auto']], CFG.themeMode)}</div>
           <div class="st-row"><span>Taille du texte</span>${seg('font', [[14, 'Petit'], [15, 'Normal'], [17, 'Grand']], CFG.fontSize)}</div>
-          <div class="st-row"><span>Couleur d'accent</span><div class="color-picker-grid" style="margin:0">${['#FFCC11', '#F97316', '#22C55E', '#3B82F6', '#A855F7', '#EF4444'].map(c => `<button type="button" class="color-btn" data-accent="${c}" style="background:${c}"></button>`).join('')}</div></div>
+          <div class="st-row"><span>Zoom maximum de la fiche<small>Pincement à 2 doigts · <b id="st-fz-v">${CFG.ficheZoom || 3}x</b></small></span><input type="range" id="st-fz" min="1" max="5" step="0.5" value="${CFG.ficheZoom || 3}" style="width:140px"></div>
+          <div class="st-row"><span>Couleur d'accent <button type="button" class="st-btn" data-accent="#2F5BD3" style="padding:4px 8px;font-size:12px">Réinitialiser</button></span><div class="color-picker-grid" style="margin:0">${['#2F5BD3', '#F97316', '#22C55E', '#3B82F6', '#A855F7', '#EF4444'].map(c => `<button type="button" class="color-btn" data-accent="${c}" style="background:${c}"></button>`).join('')}</div></div>
+        </div>`,
+      securite: `<h2>Mot de passe &amp; sécurité</h2><p class="st-sub">Code PIN et verrouillage de l'application.</p>
+        <div class="st-box">
+          <div class="st-row"><span>Code PIN<small>${CFG.pinHash ? 'Défini' : 'Non défini'} · demandé avant « Vider », « Importer » et « Tout effacer »</small></span>
+            <div class="st-actions" style="margin:0"><button type="button" class="st-btn" id="st-pin">${CFG.pinHash ? 'Modifier' : 'Définir'}</button>${CFG.pinHash ? '<button type="button" class="st-btn danger" id="st-pin-del">Retirer</button>' : ''}</div></div>
+          <div class="st-row"><span>Empreinte digitale<small>${localStorage.getItem('catBio') ? 'Activée sur cet appareil' : 'Non activée'} · ouvre l\'application sans mot de passe</small></span><button type="button" class="st-btn" id="st-bio">${localStorage.getItem('catBio') ? 'Désactiver' : 'Activer'}</button></div>
+          <div class="st-row"><span>Verrouillage automatique<small>${localStorage.getItem('catBio') ? 'Après inactivité (empreinte requise pour rouvrir)' : 'Activez d\'abord l\'empreinte digitale à la connexion'}</small></span>${seg('autolock', [[0, 'Jamais'], [5, '5 min'], [15, '15 min']], CFG.autoLock)}</div>
+        </div>`,
+      technique: `<h2>Paramètres techniques</h2><p class="st-sub">Mahanoro Power System.</p>
+        <div class="st-box">
+          <div class="st-row"><span>Seuil d'alerte niveau gasoil (L)<small>Alerte si le relevé est en dessous</small></span><input type="number" id="st-seuil" class="st-in" placeholder="ex: 200" value="${CFG.seuilGo ?? ''}"></div>
+          <div class="st-row"><span>Capacité maximale Cuve T (cm)</span><input type="number" id="st-cap" class="st-in" value="${CFG.capCuve ?? ''}"></div>
+          <div class="st-row"><span>Groupes actifs</span><div class="st-seg">${['G1', 'G2', 'G3'].map(g => `<button type="button" data-grp="${g}" class="${(CFG.groupes || {})[g] === false ? '' : 'on'}">${g}</button>`).join('')}</div></div>
         </div>`,
       calculs: `<h2>Calculs</h2><p class="st-sub">Valeurs utilisées dans la Fiche d'exploitation.</p>
         <div class="st-box"><div class="st-row"><span>Densité du gasoil (g/L)<small>Ampiasaina amin'ny CSP ao amin'ny Fiche</small></span><input type="number" id="st-dens" class="st-in" value="${CFG.densite}"></div></div>`,
@@ -1199,27 +1273,66 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="st-box st-grid2">${ALERT_DEFS.map(([k, l]) => { const a = CFG.alerts[k] || {}; return `<div class="st-row"><span>${l}</span><div class="st-mm"><input type="number" step="any" placeholder="Min" data-al="${k}" data-b="min" value="${a.min ?? ''}"><input type="number" step="any" placeholder="Max" data-al="${k}" data-b="max" value="${a.max ?? ''}"></div></div>`; }).join('')}</div>`,
       sauvegarde: `<h2>Sauvegarde &amp; restauration</h2><p class="st-sub">Voatahiry ao amin'ity appareil ity ihany ny angona. Manaova sauvegarde tsy tapaka, indrindra rehefa hifindra finday na ordinateur.</p>
         <div class="st-box"><p class="st-hint">Dernière sauvegarde : <b>${localStorage.getItem('cat_last_backup') || 'jamais'}</b></p>
-          <div class="st-actions"><button type="button" class="st-btn" id="st-exp">${ICO('down',16)} Exporter (JSON)</button><label class="st-btn">${ICO('up',16)} Importer<input type="file" id="st-imp" accept=".json,application/json" hidden></label></div></div>`,
+          <div class="st-actions"><button type="button" class="st-btn" id="st-exp">${ICO('down',16)} Exporter (JSON)</button><label class="st-btn" id="st-imp-l">${ICO('up',16)} Importer<input type="file" id="st-imp" accept=".json,application/json" hidden></label></div></div>
+        <div class="st-box"><div class="st-row"><span>Rappel de sauvegarde (hebdomadaire)</span>${seg('rappel', [[1, 'Oui'], [0, 'Non']], CFG.rappel ? 1 : 0)}</div>
+          <div class="st-row"><span>Forcer la mise à jour<small>Vide le cache et charge la dernière version</small></span><button type="button" class="st-btn" id="st-upd">${ICO('refresh',16)} Mettre à jour</button></div></div>`,
       donnees: `<h2>Données</h2><p class="st-sub">Nombre d'enregistrements et suppression par rubrique.</p>
-        <div class="st-box">${tbls.map(([t, l]) => `<div class="st-row"><span>${l}<small>${cnt[t]} enregistrement(s)</small></span><button type="button" class="st-btn danger" data-clear="${t}">Vider</button></div>`).join('')}</div>`,
-      apropos: `<h2>À propos</h2><p class="st-sub">Application de gestion d'exploitation.</p>
-        <div class="st-box"><div class="st-row"><span>Application</span><b>CAT by Manda v2.1</b></div><div class="st-row"><span>Site</span><b>Henri Fraise Fils &amp; Cie — Mahanoro</b></div></div>`
+        <div class="st-box">${tbls.map(([t, l]) => `<div class="st-row"><span>${l}<small>${cnt[t]} enregistrement(s)</small></span><button type="button" class="st-btn danger" data-clear="${t}">Vider</button></div>`).join('')}
+          <div class="st-row"><span>Réinitialisation complète<small>Efface toutes les données de l'appareil</small></span><button type="button" class="st-btn danger" id="st-all">Tout effacer</button></div></div>`
     };
-    sm.innerHTML = `<div class="modal st-modal"><div class="modal-head"><div><h3>Paramètres</h3><p>CAT by Manda · Mahanoro</p></div><button class="modal-close" type="button">×</button></div>
-      <div class="st-layout"><nav class="st-nav">${TABS.map(([id, ic, l]) => `<button type="button" data-tab="${id}" class="${stTab === id ? 'on' : ''}"><span>${ICO(ic)}</span>${l}</button>`).join('')}</nav>
-      <div class="st-panel">${P[stTab]}</div></div></div>`;
+    const ARROW = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+    const isMenu = stTab === 'menu', cur = TABS.find(x => x[0] === stTab);
+    const lastB = localStorage.getItem('cat_last_backup') || 'jamais';
+    const menuBody = `<div class="cd-hero"><div class="hc-top"><div class="hc-ic">${ICO('gear', 22)}</div><div class="hc-t"><b>Paramètres</b><span>CAT by Manda · Mahanoro</span></div></div>
+        <div class="hc-lab">Dernière sauvegarde</div><div class="hc-val"><b style="font-size:15px">${lastB}</b></div>
+        <button type="button" class="hc-go" data-tab="sauvegarde" aria-label="Sauvegarde">${ICO('next', 20)}</button></div>
+      <div class="cd-nav">${TABS.map(([id, ic, l]) => `<button type="button" class="cd-nt" ${id === 'apropos' ? 'data-about="1"' : `data-tab="${id}"`}>${ICO(ic, 40)}<span>${l}</span></button>`).join('')}</div>`;
+    sm.innerHTML = `<div class="modal st-modal bred-modal ${isMenu ? 'hero' : ''}"><div class="modal-head">
+        ${isMenu ? `<button class="modal-close" type="button" aria-label="Fermer">${ARROW}</button>` : `<button class="bm-circle" type="button" data-tab="menu" aria-label="Retour">${ARROW}</button>`}
+        <h3>${isMenu ? 'Paramètres' : cur[2]}</h3><span class="bm-circle bm-ghost" aria-hidden="true"></span></div>
+      <div class="modal-body">${isMenu ? menuBody : `<div class="st-panel">${P[stTab]}</div>`}</div></div>`;
   }
 
   sm.addEventListener('click', async (e) => {
     const t = e.target;
     if (t.closest('.modal-close')) { sm.classList.remove('open'); return; }
+    if (t.closest('[data-about]')) { window.openAboutModal(); return; }
     const tb = t.closest('[data-tab]'); if (tb) { stTab = tb.dataset.tab; renderSettings(); return; }
     const sg = t.closest('[data-seg] button');
-    if (sg) { const id = sg.parentElement.dataset.seg; if (id === 'theme') CFG.themeMode = sg.dataset.v; else CFG.fontSize = +sg.dataset.v; saveCfg(); applyCfg(); renderSettings(); return; }
+    if (sg) { const id = sg.parentElement.dataset.seg; if (id === 'theme') CFG.themeMode = sg.dataset.v; else if (id === 'autolock') CFG.autoLock = +sg.dataset.v; else if (id === 'rappel') CFG.rappel = sg.dataset.v === '1'; else CFG.fontSize = +sg.dataset.v; saveCfg(); applyCfg(); renderSettings(); return; }
     const ac = t.closest('[data-accent]'); if (ac) { window.setAccent(ac.dataset.accent); return; }
+    const sg2 = t.closest('[data-grp]');
+    if (sg2) { const g = sg2.dataset.grp; CFG.groupes = CFG.groupes || {}; const on = CFG.groupes[g] !== false; if (on && Object.values({ G1: 1, G2: 1, G3: 1 }).length && ['G1', 'G2', 'G3'].filter(x => CFG.groupes[x] !== false).length <= 1) { alert('Au moins un groupe doit rester actif.'); return; } CFG.groupes[g] = !on; saveCfg(); applyGroupes(); renderSettings(); return; }
+    if (t.closest('#st-bio')) {
+      try {
+        if (!window.CATbio) throw new Error('Connexion en ligne requise.');
+        if (window.CATbio.on()) window.CATbio.disable(); else await window.CATbio.enable();
+      } catch (err) { alert(err && err.message ? err.message : 'Activation impossible ou annulée.'); }
+      renderSettings(); return;
+    }
+    if (t.closest('#st-pin')) {
+      if (CFG.pinHash && !(await askPin('Code PIN actuel :'))) return;
+      const p1 = prompt('Nouveau code PIN (4 chiffres minimum) :'); if (p1 === null) return;
+      if (!/^\d{4,8}$/.test(p1)) { alert('Le PIN doit contenir 4 à 8 chiffres.'); return; }
+      if (prompt('Confirmez le code PIN :') !== p1) { alert('Les codes ne correspondent pas.'); return; }
+      CFG.pinHash = await sha(p1); saveCfg(); renderSettings(); return;
+    }
+    if (t.closest('#st-pin-del')) { if (await askPin('Code PIN actuel :')) { CFG.pinHash = ''; saveCfg(); renderSettings(); } return; }
+    if (t.closest('#st-upd')) {
+      if (!confirm("Vider le cache et recharger l'application ? (vos données sont conservées)")) return;
+      try { for (const k of await caches.keys()) await caches.delete(k); const rg = await navigator.serviceWorker.getRegistrations(); for (const r of rg) await r.unregister(); } catch (e) {}
+      location.reload(); return;
+    }
+    if (t.closest('#st-all')) {
+      if (!(await askPin('Code PIN pour tout effacer :'))) return;
+      if (!confirm('Tout effacer ? Cette action est irréversible.')) return;
+      for (const tb of db.tables) await tb.clear();
+      await renderSettings(); loadReleves(); loadHistorique(); loadTravaux(); return;
+    }
     const cl = t.closest('[data-clear]');
     if (cl) {
       const n = cl.dataset.clear;
+      if (!(await askPin('Code PIN pour vider :'))) return;
       if (confirm(`Vider "${n}" ? Tsy azo averina izany.`)) { await db[n].clear(); await renderSettings(); loadReleves(); loadHistorique(); loadTravaux(); }
       return;
     }
@@ -1227,15 +1340,29 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   sm.addEventListener('input', (e) => {
     const t = e.target;
+    if (t.id === 'st-fz') { CFG.ficheZoom = +t.value; saveCfg(); const v = document.getElementById('st-fz-v'); if (v) v.textContent = t.value + 'x'; }
+    if (t.id === 'st-seuil') { CFG.seuilGo = t.value; saveCfg(); }
+    if (t.id === 'st-cap') { CFG.capCuve = t.value; saveCfg(); }
     if (t.id === 'st-dens') { CFG.densite = fNum(t.value) || 830; saveCfg(); }
     if (t.dataset && t.dataset.al) { const a = CFG.alerts[t.dataset.al] = CFG.alerts[t.dataset.al] || {}; const v = fNum(t.value); if (v == null) delete a[t.dataset.b]; else a[t.dataset.b] = v; saveCfg(); }
   });
-  sm.addEventListener('change', (e) => { if (e.target.id === 'st-imp') window.importBackup(e.target.files[0]); });
+  sm.addEventListener('change', async (e) => { if (e.target.id === 'st-imp') { const f = e.target.files[0]; if (f && await askPin('Code PIN pour importer :')) window.importBackup(f); else e.target.value = ''; } });
 
   window.openSettingsModal = async function () {
-    await renderSettings(); sm.classList.add('open');
+    stTab = 'menu'; await renderSettings(); sm.classList.add('open');
     sideMenu.classList.remove('open'); sideMenuOverlay.classList.remove('open');
   };
+
+  // --- Liens externes (À propos : WhatsApp, Facebook, portfolio) : ouverture fiable (PWA, file:///, téléphone) ---
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a[data-ext]');
+    if (!a) return;
+    e.preventDefault();
+    const url = a.getAttribute('href');
+    let w = null;
+    try { w = window.open(url, '_blank', 'noopener'); } catch (x) {}
+    if (!w) { try { location.href = url; } catch (x) {} }
+  });
 
   // --- Fermeture des modals (Paramètres, À propos, Historique) ---
   ['settingsModal', 'aboutModal', 'historyModal'].forEach(id => {
@@ -1249,6 +1376,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.exportBackup = async function() {
     const dump = { app: 'CAT by Manda', version: 2, date: new Date().toISOString(), leaves, data: {} };
     for (const t of db.tables) dump.data[t.name] = await t.toArray();
+    localStorage.setItem('cat_last_backup_ts', Date.now());
     downloadFile('CAT_backup_' + localDateStr() + '.json', JSON.stringify(dump), 'application/json');
   };
   window.importBackup = async function(file) {
@@ -1261,7 +1389,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await t.clear();
         if (Array.isArray(dump.data[t.name]) && dump.data[t.name].length) await t.bulkAdd(dump.data[t.name]);
       }
-      leaves = dump.leaves || []; localStorage.setItem('hffc_leaves', JSON.stringify(leaves));
+      /* congés : dans la base (table conges) */
       alert('Restauration réussie !'); location.reload();
     } catch (err) { console.error(err); alert('Fichier invalide.'); }
   };
@@ -1278,8 +1406,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (document.getElementById('updateBanner')) return;
       const b = document.createElement('div');
       b.id = 'updateBanner';
-      b.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:3000;background:#111318;color:#FFCC11;padding:12px 16px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.35);display:flex;gap:12px;align-items:center;font-size:14px;font-weight:700;';
-      b.innerHTML = '<span>Version vaovao disponible</span><button style="background:#FFCC11;color:#111318;border:none;border-radius:8px;padding:6px 12px;font-weight:800;cursor:pointer;">Mettre à jour</button>';
+      b.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:3000;background:#0B1F4B;color:#fff;padding:12px 16px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.35);display:flex;gap:12px;align-items:center;font-size:14px;font-weight:700;';
+      b.innerHTML = '<span>Nouvelle version disponible</span><button style="background:#fff;color:#0B1F4B;border:none;border-radius:8px;padding:6px 12px;font-weight:800;cursor:pointer;">Mettre à jour</button>';
       b.querySelector('button').onclick = () => worker.postMessage('SKIP_WAITING');
       document.body.appendChild(b);
     };
@@ -1297,5 +1425,54 @@ document.addEventListener('DOMContentLoaded', () => {
   loadHistorique();
   loadTravaux();
   loadReleves();
-  markNav('page-releve');
+  function renderUpcoming() {
+    const el = document.getElementById('leaveUpcoming'); if (!el) return;
+    const t = localDateStr(), up = leaves.filter(l => l.end >= t).sort((x, y) => x.start.localeCompare(y.start));
+    const fd = v => v.split('-').reverse().join('/');
+    el.innerHTML = up.length ? up.map(l => `<div class="lv-row"><b>${escH(l.name)}</b><span>${fd(l.start)} → ${fd(l.end)}</span></div>`).join('') : '<p style="color:var(--text-muted);font-size:14px">Aucun congé prévu.</p>';
+  }
+  async function loadCal() {
+    if (document.body.dataset.role === 'chef' && !localStorage.getItem('hffc_leaves_mig')) {   // migration unique des anciens congés (localStorage → base synchronisée)
+      try { for (const l of JSON.parse(localStorage.getItem('hffc_leaves') || '[]')) await db.conges.add({ name: l.name, start: l.start, end: l.end }); } catch (e) {}
+      localStorage.setItem('hffc_leaves_mig', '1');
+    }
+    leaves = await db.conges.toArray(); roster = await db.roster.toArray();
+    renderCal(); renderUpcoming(); myShiftBanner();
+  }
+  function myShiftBanner() {
+    const el = document.getElementById('myShift'); if (!el) return;
+    let nom = ''; try { nom = (JSON.parse(localStorage.getItem('catProf') || '{}').nom || '').toLowerCase(); } catch (e) {}
+    const mine = a => nom && (nom.includes(String(a).toLowerCase()) || String(a).toLowerCase().includes(nom));
+    const lines = [], sig = [];
+    for (let k = 0; k < 14; k++) {
+      const d = new Date(); d.setDate(d.getDate() + k); const sc = getSched(d), iso = localDateStr(d);
+      sc.slots.forEach(x => { if (mine(x.agent) || document.body.dataset.role === 'chef') sig.push(iso + x.poste.nom + x.agent); });
+      if (k < 2) sc.slots.forEach(x => { if (mine(x.agent)) lines.push((k ? 'Demain' : "Aujourd'hui") + ' : <b>' + escH(x.poste.nom) + '</b> ' + x.poste.debut + '–' + x.poste.fin); });
+    }
+    const h = sig.join('|'), old = localStorage.getItem('catSchedSig'); let chg = '';
+    if (old !== null && old !== h) chg = '<div style="background:#FFCC11;color:#000;padding:8px 10px;border-radius:8px;margin-bottom:8px;font-weight:700">Le planning a été modifié par le Chef.</div>';
+    localStorage.setItem('catSchedSig', h);
+    el.innerHTML = chg + (lines.length ? '<div class="cd-card" style="padding:10px;margin-bottom:10px"><b>Mon poste</b><br>' + lines.join('<br>') + '</div>' : '');
+  }
+  window.CATcalReload = loadCal;
+  window.addEventListener('cat-synced', loadCal);
+  loadCal();
+
+  // PERSISTANCE : dernière page + brouillons des formulaires (iOS recharge l'app en arrière-plan)
+  const draftIds = [...document.querySelectorAll('.page input[id], .page select[id], .page textarea[id]')]
+    .filter(e => !['file', 'password', 'search', 'date', 'time'].includes(e.type) && !e.closest('#page-fiche') && !e.closest('#page-chef')).map(e => e.id);
+  function saveDraft() {
+    try { const d = {}; draftIds.forEach(id => { const e = document.getElementById(id); if (e && e.value !== '') d[id] = e.value; }); localStorage.setItem('catDraft', JSON.stringify(d)); } catch (e) {}
+  }
+  try {
+    const d = JSON.parse(localStorage.getItem('catDraft') || '{}');
+    Object.keys(d).forEach(id => { const e = document.getElementById(id); if (e && draftIds.includes(id)) { e.value = d[id]; e.dispatchEvent(new Event('input', { bubbles: true })); } });
+  } catch (e) {}
+  let dt = null; const later = () => { clearTimeout(dt); dt = setTimeout(saveDraft, 300); };
+  document.addEventListener('input', later); document.addEventListener('change', later);
+  document.addEventListener('click', e => { if (e.target.closest('button')) setTimeout(saveDraft, 600); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) saveDraft(); });
+  window.addEventListener('pagehide', saveDraft);
+  const lastPage = localStorage.getItem('catPage');
+  if (lastPage && lastPage !== 'page-chef' && document.getElementById(lastPage)) showPage(lastPage); else markNav('page-releve');
 });

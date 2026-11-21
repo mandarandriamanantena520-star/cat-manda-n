@@ -1,0 +1,29 @@
+CAT by Manda V4.3 - Photo de profil par compte + e-mails reels
+
+CORRECTIONS
+1) Photo de profil (sync.js, chef.js)
+   - Avant : une seule cle (catAvatar) pour tout l'appareil -> la photo d'un compte apparaissait sur les autres comptes.
+   - Maintenant : une cle PAR COMPTE (catAvatar:<id>). Changer la photo d'un compte ne touche plus les autres.
+   - Migration automatique : l'ancienne photo partagee est donnee au compte actif de l'appareil, puis supprimee.
+   - La photo reste enregistree sur l'appareil (pas sur le serveur) : a refaire sur un autre telephone.
+   - Meme principe pour le brouillon d'e-mail (catMailDraft:<id>) : plus de melange entre comptes.
+
+2) Messagerie : vraies adresses e-mail (messenger.js, sync.js)
+   - Nouveau bouton « contacts » (icone personnes) dans les champs A / Cc / Cci : liste de TOUS les comptes valides,
+     Chefs ET agents, avec leur vraie adresse e-mail, recherche par nom, selection multiple.
+   - On peut toujours taper l'adresse d'une personne sans compte ; les adresses d'exemple (exemple.com, test.com...) sont refusees.
+   - Creation de compte : les adresses d'exemple sont refusees. L'e-mail du compte est tenu a jour dans le profil.
+   - Les agents (e-mail recu dans leur boite) : lecture non suivie dans l'appli (la messagerie interne reste reservee aux Chefs).
+
+3) Envoi qui ne partait jamais
+   - Cause : le serveur d'envoi (Edge Function « send-mail ») n'etait pas installe sur Supabase.
+   - Ajout du dossier serveur-email/ (send-mail.ts + LISEZ-MOI.txt) : a installer une seule fois, voir son LISEZ-MOI.txt.
+   - Tant qu'il n'est pas installe : « Ouvrir dans ma messagerie » (Gmail avec destinataires/objet/texte) ou « Partager » (avec piece jointe).
+
+FICHIERS MODIFIES : sync.js, chef.js, messenger.js, theme-bred.css, version.js (V4.3), manifest.json, index.html (version).
+NOUVEAUX : serveur-email/send-mail.ts, serveur-email/LISEZ-MOI.txt, LISEZMOI-V4_3.txt.
+
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).
+
+V4.3.1 : le nom de la fonction Supabase est lu dans config.js (mailFn). Valeur actuelle : 'rapid-processor' (nom reel de la fonction deployee).
+Si vous la recreez sous le nom send-mail, changez mailFn: 'send-mail' dans config.js.
