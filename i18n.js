@@ -9,6 +9,15 @@
 
   // [FR, MG, EN]
   var T = [
+    // ---- V4.46 : Jaugeage Gasoil (litres <-> cm) ----
+    ["Jaugeage Gasoil", "Jaugeage Gasoil (Fandrefesana solika)", "Diesel Gauging"],
+    ["Barème du certificat du 01/02/2021. Écrivez dans un champ : l'autre se calcule tout seul.", "Barème ao amin'ny certificat 01/02/2021. Soraty ao amin'ny tsanganana iray: ny iray hafa dia mivoaka ho azy.", "Calibration chart from the certificate of 01/02/2021. Type in one field: the other is calculated automatically."],
+    ["Hauteur (cm)", "Haavony (cm)", "Height (cm)"],
+    ["Contenance (Litres)", "Fitoviana (Litatra)", "Volume (Litres)"],
+    ["Entrez une hauteur ou un volume.", "Ampidiro ny haavo na ny habetsaky ny solika.", "Enter a height or a volume."],
+    ["Voir le barème complet", "Jereo ny barème feno", "View the full chart"],
+    ["Hors barème", "Ivelan'ny barème", "Out of range"],
+    ["Graduation la plus proche", "Graduation akaiky indrindra", "Nearest graduation"],
     // ---- V4.35 : recherche / filtre des fiches ----
     ["Filtre", "Sivana", "Filter"],
     ["Rechercher (date, note, statut…)", "Hikaroka (daty, note, statut…)", "Search (date, note, status…)"],

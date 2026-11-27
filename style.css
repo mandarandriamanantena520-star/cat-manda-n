@@ -777,3 +777,14 @@ body[data-role="agent"] [onclick*="page-messages"]{display:none!important}
 .vf-search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border:1.5px solid var(--border);border-radius:14px;background:var(--surface-2)}
 .vf-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:inherit;font:inherit;padding:0;margin:0;height:100%}
 .vf-panel[hidden]{display:none}
+
+/* ===== V4.46 : Jaugeage Gasoil (litres <-> cm) ===== */
+.jg-hint { font-size: 13px; color: var(--text-muted); margin: -6px 0 14px; }
+.jg-result { font-size: 15px; padding: 14px; margin-top: 12px; background: var(--surface); border: 1px dashed var(--border); border-radius: 10px; text-align: center; line-height: 1.5; }
+.jg-result b { color: var(--primary); font-weight: 800; }
+.jg-result.jg-err { color: #E5484D; }
+#jg-details summary { cursor: pointer; font-weight: 800; padding: 4px 0; }
+.jg-table { font-size: 12px; text-align: center; white-space: nowrap; }
+.jg-table th, .jg-table td { padding: 6px 8px; }
+.jg-table tbody th { position: sticky; left: 0; background: var(--surface-2); }
+.jg-table td.jg-hit, .jg-table tr.jg-row-hit th { background: var(--secondary-soft); font-weight: 800; }
