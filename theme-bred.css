@@ -442,3 +442,15 @@ body.chef-pg #page-chef .pl-t td.pl-rest { color: var(--text-muted); }
 #page-chef .pl-hist summary .chef-b { margin-left: auto; }
 #page-chef .pl-per { padding: 12px 0; border-top: 1px solid var(--border); margin-top: 8px; }
 @media (max-width: 420px) { body.chef-pg #page-chef .pl-times input[type=time] { width: 100px; } #page-chef .pl-ib.pl-txt span { display: inline; } }
+
+/* ===== V4.46 : application installee sur ordinateur (Chrome/Edge) : pas de texte dans la barre de titre.
+   Le header remonte dans la barre de titre ; on laisse la place aux boutons reduire/agrandir/fermer. ===== */
+@media (display-mode: window-controls-overlay) {
+  header {
+    -webkit-app-region: drag; app-region: drag;
+    min-height: env(titlebar-area-height, 48px);
+    padding-left: max(18px, env(titlebar-area-x, 0px));
+    padding-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw) + 12px);
+  }
+  header button, header a, header input { -webkit-app-region: no-drag; app-region: no-drag; }
+}

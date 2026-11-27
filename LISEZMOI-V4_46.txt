@@ -10,3 +10,7 @@ CORRECTIF : la ligne 22 du certificat (220 a 222 cm : 854,37 / 858,25 / 862,14 L
 Note : valeur du certificat pour 88 = « 341,47 » (probable coquille d'impression) ; l'application garde 341,74 (coherent avec le pas de 3,88 L).
 FICHIERS : jauge.js (nouveau), index.html, app.js, style.css, i18n.js, sw.js, version.js, manifest.json, about.js.
 Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.
+CORRECTIF TITRE : la barre de titre de l'application installee (PWA) affichait « V4.45 - V4.46 » (ancien nom du manifest + nouveau titre). Le nom ne contient plus la version : « CAT by Manda » (manifest.json et index.html). La version reste visible dans l'application (A propos).
+Si l'ancien titre reste sur un PC : desinstaller l'application installee puis la reinstaller (ou attendre la mise a jour automatique du manifest par Chrome/Edge).
+BARRE DE TITRE (PC) : manifest.json « display_override: window-controls-overlay » + regle CSS dans theme-bred.css. L'application installee sur ordinateur n'affiche plus de texte dans la barre de titre : le bandeau bleu (logo, menu) monte tout en haut, a cote des boutons reduire/agrandir/fermer. Aucun effet sur telephone ni dans un onglet normal.
+Mise en place : deployer, puis DESINSTALLER et REINSTALLER l'application sur le PC (le manifest n'est relu qu'a l'installation / mise a jour Chrome).
