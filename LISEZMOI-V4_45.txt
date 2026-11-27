@@ -1,0 +1,9 @@
+CAT by Manda V4.45 - « À propos » en 3 langues + nouveau design
+
+- Langues : Malagasy / Français / English. La page suit la langue de l'application (Parametres > Langue) ; les boutons MG | FR | EN en haut de la page changent la MEME langue pour toute l'application.
+- Design : sections repliables (À propos, Fonctions, Sécurité, Contact), pastilles Version / Date / PWA, fiches « clé : valeur », liste de fonctions a puces, apparition animee (desactivee si « Reduire les animations »).
+- La version affichee suit automatiquement l'application (plus de V4.12.1 fixe).
+- Textes mis a jour : ajout de « Synchronisation et messagerie » et correction de « Sauvegarde et sécurité » (les donnees sont aussi synchronisees avec le serveur, pas seulement locales).
+- Liens conserves : WhatsApp, e-mail, portfolio, Facebook.
+FICHIERS : about.js (nouveau), index.html, sw.js, version.js, manifest.json.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.

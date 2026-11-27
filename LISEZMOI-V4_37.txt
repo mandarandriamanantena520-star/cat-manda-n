@@ -1,0 +1,9 @@
+CAT by Manda V4.37 - Photo de profil partagee
+
+AVANT : la photo restait sur l'appareil. MAINTENANT : elle est envoyee dans profiles.avatar (192 px, ~10-20 Ko) et visible par les autres utilisateurs.
+- A FAIRE UNE FOIS : executer supabase/avatar-partage.sql dans Supabase > SQL Editor (alter table profiles add column avatar). Necessite aussi la regle profiles_update_own (V4.19).
+- Affichage : Messagerie (liste, message ouvert, choix des destinataires) et Chef > Comptes. Sans photo : la lettre initiale comme avant.
+- A la connexion : si le serveur a deja ma photo, elle est reprise ; si le serveur est vide et que l'appareil en a une, elle est envoyee automatiquement.
+- Les photos des autres sont rafraichies toutes les 5 min et gardees en cache (hors ligne). « Retirer la photo » l'enleve aussi du serveur.
+FICHIERS MODIFIES : sync.js, profil.js, messenger.js, chef.js, version.js, manifest.json, index.html (+ supabase/avatar-partage.sql).
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.

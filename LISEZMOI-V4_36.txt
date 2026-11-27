@@ -1,0 +1,7 @@
+CAT by Manda V4.36 - Rapports : PDF externe
+
+AJOUT : Chef > Rapports > carte « PDF externe PPS / DPR » : Ajouter / Remplacer / Ouvrir / Supprimer un PDF (ex. PPS ou DPR fait sous Excel).
+- Un PDF par type (PPS, DPR) et par date, enregistre avec la fiche du jour (max 8 Mo). Il faut qu'une fiche existe a cette date.
+- « Compléments du rapport » est CONSERVE. L'envoi e-mail reste inchange (PDF genere par l'application).
+FICHIERS MODIFIES : chef.js, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.

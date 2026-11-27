@@ -270,3 +270,175 @@ body.on-chef.chef-home .chef-body { max-width: 760px; margin: 0 auto; }
 #mcContacts .mc-cf { padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
 #mcContacts .mc-cf button { border: 1px solid var(--border); background: var(--surface); color: var(--text-main); border-radius: 12px; padding: 11px; font-weight: 700; cursor: pointer; }
 #mcContacts .mc-cf small { color: var(--text-muted); text-align: center; }
+
+/* ============================================================
+   V4.12.1 - Espace Chef : Fiches / Rapports / Quart / Employés / Compte
+   Même structure que l'accueil : en-tête bleu de 203 px, feuille blanche
+   arrondie, carte violette flottante (.cd-hero), puis le contenu.
+   Couleurs BRED fixes (indépendantes de la couleur d'accent choisie).
+   Tout est limité à ces 5 pages : l'accueil n'est pas touché.
+   ============================================================ */
+body.chef-pg #page-chef { --cp: #1C4B9C; --cp-soft: rgba(28, 75, 156, .10); --cp-on: #fff; }
+body.dark-mode.chef-pg #page-chef { --cp: #5B8CFF; --cp-soft: rgba(134, 170, 255, .16); --cp-on: #0A1224; }
+
+/* Pastilles de navigation sous la carte */
+body.chef-pg #page-chef .chef-tabs { display: flex; gap: 8px; margin: 34px -20px 18px; padding: 4px 20px 10px; overflow-x: auto; scrollbar-width: none; }
+body.chef-pg #page-chef .chef-tabs::-webkit-scrollbar { display: none; }
+body.chef-pg #page-chef .chef-tabs button {
+  flex: 0 0 auto; min-width: 0; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px;
+  padding: 9px 14px; background: var(--surface); color: var(--bred-lab); box-shadow: var(--tile-sh);
+  font-size: 13px; font-weight: 700; white-space: nowrap;
+}
+body.chef-pg #page-chef .chef-tabs button svg { width: 16px; height: 16px; }
+body.chef-pg #page-chef .chef-tabs button.on { background: var(--cp); color: var(--cp-on); }
+
+/* Cartes, champs et boutons */
+body.chef-pg #page-chef .chef-card { border: 0; background: var(--surface); border-radius: 22px; box-shadow: var(--tile-sh); padding: 16px; margin: 0 0 14px; }
+body.chef-pg #page-chef .chef-card label, body.chef-pg #page-chef .chef-body > label { display: block; margin: 12px 0 6px; font-size: 12.5px; font-weight: 700; color: var(--text-muted); }
+body.chef-pg #page-chef .chef-card label:first-child { margin-top: 0; }
+body.chef-pg #page-chef input:not([type=file]):not([type=checkbox]):not([type=radio]), body.chef-pg #page-chef select, body.chef-pg #page-chef textarea { border-radius: 14px; background: var(--surface-2); }
+body.chef-pg #page-chef .chef-actions { gap: 10px; }
+body.chef-pg #page-chef .btn { border: 0; border-radius: 14px; min-height: 42px; padding: 10px 16px; font-size: 13.5px; }
+body.chef-pg #page-chef .btn-yellow { background: var(--cp); color: var(--cp-on); box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--cp) 70%, transparent); }
+body.chef-pg #page-chef .btn-black { background: var(--cp-soft); color: var(--cp); border: 0; box-shadow: none; }
+body.chef-pg #page-chef .btn[disabled] { opacity: .45; }
+body.chef-pg #page-chef summary { cursor: pointer; }
+body.chef-pg #page-chef .chef-body > .chef-sub { margin: 0 4px 14px; }
+body.chef-pg #page-chef .chef-card .chef-b, body.chef-pg #page-chef .cd-tile .chef-b { background: var(--cp-soft); color: var(--cp); }
+body.chef-pg #page-chef .chef-card .chef-validee, body.chef-pg #page-chef .cd-tile .chef-validee { background: rgba(18, 161, 80, .14); color: #12A150; }
+body.chef-pg #page-chef .chef-card .chef-retournee, body.chef-pg #page-chef .cd-tile .chef-retournee { background: rgba(220, 60, 68, .12); color: #DC3C44; }
+body.chef-pg #page-chef .chef-card .chef-soumise { background: rgba(245, 165, 36, .18); color: #C77700; }
+
+/* Fiches : trois chiffres clés par carte */
+body.chef-pg #page-chef .chef-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+body.chef-pg #page-chef .chef-stats > div { background: var(--surface-2); border-radius: 14px; padding: 10px 4px; text-align: center; }
+body.chef-pg #page-chef .chef-stats b { display: block; font-size: 17px; }
+body.chef-pg #page-chef .chef-stats small { color: var(--text-muted); font-size: 11px; }
+
+/* Rapports : date + choix PPS / DPR */
+body.chef-pg #page-chef .chef-ctl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+body.chef-pg #page-chef .chef-ctl input[type=date] { flex: 1 1 150px; margin: 0; }
+body.chef-pg #page-chef .chef-seg { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface-2); }
+body.chef-pg #page-chef .chef-seg button { border: 0; border-radius: 11px; padding: 9px 20px; background: none; color: var(--text-muted); font: inherit; font-weight: 800; cursor: pointer; }
+body.chef-pg #page-chef .chef-seg button.on { background: var(--cp); color: var(--cp-on); }
+
+/* Employés : tuiles */
+body.chef-pg #page-chef .cd-tile[data-act="empview"] { align-items: center; text-align: center; }
+body.chef-pg #page-chef .cd-tile .cd-av { background-color: var(--cp-soft); color: var(--cp); font-size: 20px; margin-bottom: 4px; }
+body.chef-pg #page-chef .cd-tile[data-act="empview"] b { font-size: 16px; }
+body.chef-pg #page-chef .cd-tile .chef-b { align-self: center; margin-top: 4px; }
+
+/* Compte : pastille d'initiale */
+body.chef-pg #page-chef .cp-who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+body.chef-pg #page-chef .cp-who b { color: var(--text-main); }
+body.chef-pg #page-chef .cp-av { width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--cp-soft); color: var(--cp); font-style: normal; font-weight: 800; }
+
+@media (min-width: 1024px) {
+  body.chef-pg #page-chef .chef-tabs { margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0; }
+}
+@media print {
+  body.print-chef.on-chef .container { margin: 0; padding: 0; background: #fff; border-radius: 0; min-height: 0; }
+}
+
+/* ===== V4.19 : Mon profil ===== */
+.pf-av { background-position: center; background-size: cover; background-repeat: no-repeat; font-weight: 800; }
+.pf-lab { display: block; margin: 10px 0 2px; font-size: 13px; font-weight: 700; }
+.st-in.pf-in { width: 100%; box-sizing: border-box; text-align: left; margin: 4px 0 6px; padding: 10px 12px; }
+.pf-acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+.pf-msg { margin: 0 0 14px; padding: 10px 12px; border-radius: 12px; font-size: 13.5px; line-height: 1.4; background: #FEF3F2; color: #B42318; }
+.pf-msg.ok { background: #ECFDF3; color: #067647; }
+.pf-msg[hidden] { display: none; }
+.cd-av[data-profile] { cursor: pointer; }
+
+/* ============================================================
+   V4.23 - Planning de quart (Espace Chef) : editeur visuel
+   Postes scindables, agents ordonnables, rotation, apercu.
+   ============================================================ */
+#page-chef .pl-c0 { --pc: #2A5CB5; } #page-chef .pl-c1 { --pc: #E08A00; } #page-chef .pl-c2 { --pc: #6B4EE6; }
+#page-chef .pl-c3 { --pc: #0E9F8E; } #page-chef .pl-c4 { --pc: #D9485F; } #page-chef .pl-c5 { --pc: #64748B; }
+body.dark-mode #page-chef .pl-c0 { --pc: #7FA6FF; } body.dark-mode #page-chef .pl-c1 { --pc: #FFB74A; } body.dark-mode #page-chef .pl-c2 { --pc: #A794FF; }
+body.dark-mode #page-chef .pl-c3 { --pc: #3FD1BE; } body.dark-mode #page-chef .pl-c4 { --pc: #FF8095; } body.dark-mode #page-chef .pl-c5 { --pc: #9AA8BC; }
+
+#page-chef .pl-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--pc, var(--cp)); display: inline-block; flex-shrink: 0; }
+#page-chef .pl-h { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+#page-chef .pl-h em { width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; background: var(--cp); color: var(--cp-on); display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 12px; font-weight: 800; }
+#page-chef .pl-h b { font-size: 15px; color: var(--text-main); }
+#page-chef .pl-h small { margin-left: auto; color: var(--text-muted); font-weight: 700; }
+#page-chef .pl-title b { font-size: 17px; }
+#page-chef .pl-hint { margin: 0 0 10px; font-size: 12.5px; line-height: 1.45; color: var(--text-muted); }
+#page-chef .pl-sec { padding: 16px 0; border-top: 1px solid var(--border); }
+#page-chef .pl-sec:first-of-type { border-top: 0; padding-top: 4px; }
+
+#page-chef .pl-po { padding: 12px; border-radius: 16px; background: var(--surface-2); margin-bottom: 8px; }
+#page-chef .pl-po-top { display: flex; align-items: center; gap: 10px; }
+body.chef-pg #page-chef .pl-po-top input { flex: 1; min-width: 0; background: var(--surface); font-weight: 700; }
+#page-chef .pl-times { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+body.chef-pg #page-chef .pl-times input[type=time] { width: 112px; flex: 0 0 auto; background: var(--surface); }
+#page-chef .pl-arr { display: flex; color: var(--text-muted); }
+#page-chef .pl-times em { font-style: normal; font-size: 12.5px; font-weight: 800; color: var(--text-muted); margin-right: auto; }
+
+#page-chef .pl-ib { min-width: 36px; height: 36px; border: 0; border-radius: 12px; background: var(--cp-soft); color: var(--cp); display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0; cursor: pointer; flex-shrink: 0; font: inherit; }
+#page-chef .pl-ib:disabled { opacity: .3; cursor: default; }
+#page-chef .pl-ib.pl-txt { padding: 0 12px; font-size: 12.5px; font-weight: 800; }
+#page-chef .pl-ib.pl-danger { background: rgba(220, 60, 68, .10); color: #DC3C44; }
+#page-chef .pl-ib svg { vertical-align: middle !important; }
+body.chef-pg #page-chef .pl-add { width: 100%; margin: 4px 0 6px; }
+
+#page-chef .pl-tl { margin-top: 14px; }
+#page-chef .pl-track { position: relative; height: 30px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border);
+  background: repeating-linear-gradient(135deg, var(--surface-2) 0 6px, color-mix(in srgb, var(--text-muted) 24%, transparent) 6px 8px); }
+#page-chef .pl-seg { position: absolute; top: 0; bottom: 0; background: var(--pc); box-shadow: inset -2px 0 0 var(--surface); }
+#page-chef .pl-ov { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(45deg, rgba(220, 60, 68, .9) 0 4px, rgba(255, 255, 255, .55) 4px 8px); }
+#page-chef .pl-ticks { position: relative; height: 18px; margin-top: 4px; font-size: 11px; font-weight: 700; color: var(--text-muted); }
+#page-chef .pl-ticks span { position: absolute; transform: translateX(-50%); }
+#page-chef .pl-ticks span:first-child { transform: none; } #page-chef .pl-ticks span:last-child { transform: translateX(-100%); }
+
+#page-chef .pl-w, #page-chef .pl-ok, #page-chef .pl-i { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 14px; margin-top: 8px; font-size: 13px; line-height: 1.4; }
+#page-chef .pl-w svg, #page-chef .pl-ok svg, #page-chef .pl-i svg { flex-shrink: 0; margin-top: 1px; }
+#page-chef .pl-w em, #page-chef .pl-ok em, #page-chef .pl-i em { display: block; font-style: normal; font-weight: 600; opacity: .9; }
+#page-chef .pl-w { background: rgba(245, 165, 36, .16); color: #9A5B00; }
+#page-chef .pl-ok { background: rgba(18, 161, 80, .12); color: #0E8A43; }
+#page-chef .pl-i { background: var(--cp-soft); color: var(--cp); }
+body.dark-mode #page-chef .pl-w { color: #FFC56B; } body.dark-mode #page-chef .pl-ok { color: #4ADE80; }
+
+#page-chef .pl-ag { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 14px; background: var(--surface-2); margin-bottom: 6px; }
+#page-chef .pl-ag b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); }
+#page-chef .pl-n { width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; background: var(--cp-soft); color: var(--cp); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+#page-chef .pl-tag { display: inline-block; font-style: normal; font-size: 11.5px; font-weight: 800; padding: 3px 9px; border-radius: 99px; white-space: nowrap;
+  background: color-mix(in srgb, var(--pc, var(--text-muted)) 16%, transparent); color: var(--pc, var(--text-muted)); }
+#page-chef .pl-tag.pl-rest { --pc: #64748B; } #page-chef .pl-tag.pl-leave { --pc: #DC3C44; }
+#page-chef .pl-add-ag { display: flex; gap: 8px; margin-top: 8px; }
+body.chef-pg #page-chef .pl-add-ag input { flex: 1; min-width: 0; } body.chef-pg #page-chef .pl-add-ag select { width: auto; flex: 0 0 auto; max-width: 42%; }
+
+#page-chef .pl-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+#page-chef .pl-chip-b { border: 0; border-radius: 99px; padding: 8px 14px; background: var(--cp-soft); color: var(--cp); font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; }
+#page-chef .pl-chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 6px 5px 12px; border-radius: 99px; background: var(--surface-2); font-weight: 700; font-size: 13px; color: var(--text-main); }
+#page-chef .pl-chip button { border: 0; background: none; color: var(--text-muted); padding: 3px; display: flex; cursor: pointer; }
+
+body.chef-pg #page-chef .pl-seg2 { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 8px; }
+body.chef-pg #page-chef .pl-seg2 button { padding: 10px 8px; font-size: 13px; line-height: 1.25; }
+#page-chef .pl-adv { margin-top: 12px; padding: 12px; border-radius: 16px; background: var(--surface-2); }
+#page-chef .pl-adv summary { font-weight: 800; color: var(--cp); margin-bottom: 4px; }
+body.chef-pg #page-chef .pl-adv input, body.chef-pg #page-chef .pl-adv select { background: var(--surface); }
+
+#page-chef .pl-scroll { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+body.chef-pg #page-chef .pl-t { width: 100%; min-width: 420px; border-collapse: separate; border-spacing: 0; font-size: 13px; background: none; }
+body.chef-pg #page-chef .pl-t th, body.chef-pg #page-chef .pl-t td { padding: 9px 8px; text-align: left; white-space: nowrap; background: none; color: var(--text-main); border: 0; border-bottom: 1px solid var(--border); text-transform: none; letter-spacing: 0; }
+body.chef-pg #page-chef .pl-t thead th { font-size: 12px; font-weight: 800; color: var(--text-muted); vertical-align: bottom; }
+body.chef-pg #page-chef .pl-t thead th small { display: block; font-weight: 600; margin-top: 2px; }
+body.chef-pg #page-chef .pl-t thead .pl-dot { margin-right: 6px; }
+body.chef-pg #page-chef .pl-t tbody th { font-weight: 800; }
+body.chef-pg #page-chef .pl-t tbody tr:first-child th, body.chef-pg #page-chef .pl-t tbody tr:first-child td { background: var(--cp-soft); }
+body.chef-pg #page-chef .pl-t tbody tr:first-child th { border-radius: 12px 0 0 12px; } body.chef-pg #page-chef .pl-t tbody tr:first-child td:last-child { border-radius: 0 12px 12px 0; }
+body.chef-pg #page-chef .pl-t td.pl-rest { color: var(--text-muted); }
+
+#page-chef .pl-now { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--border); }
+#page-chef .pl-now > div { flex: 1; min-width: 0; } #page-chef .pl-now b { color: var(--text-main); }
+#page-chef .pl-now small { display: block; color: var(--text-muted); font-weight: 600; } #page-chef .pl-now strong { color: var(--cp); font-size: 15px; }
+#page-chef .pl-line { margin: 8px 0 0; font-size: 13px; display: flex; gap: 10px; }
+#page-chef .pl-line small { color: var(--text-muted); font-weight: 800; min-width: 62px; }
+#page-chef .pl-hist summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
+#page-chef .pl-hist summary::-webkit-details-marker { display: none; }
+#page-chef .pl-hist summary .chef-b { margin-left: auto; }
+#page-chef .pl-per { padding: 12px 0; border-top: 1px solid var(--border); margin-top: 8px; }
+@media (max-width: 420px) { body.chef-pg #page-chef .pl-times input[type=time] { width: 100px; } #page-chef .pl-ib.pl-txt span { display: inline; } }

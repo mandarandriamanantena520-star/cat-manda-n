@@ -1,0 +1,10 @@
+CAT by Manda V4.39 - Deconnexion fiable (ordinateur)
+
+PROBLEME : sur ordinateur, le bouton « Déconnexion » semblait ne rien faire.
+CAUSES POSSIBLES CORRIGEES :
+1) empreinte / Windows Hello active : le bouton ne faisait que VERROUILLER, puis l'ecran se deverrouillait aussitot -> aucun changement visible ;
+2) sb.auth.signOut() pouvait rester bloque (autre onglet de l'application ouvert, reseau) -> la page ne se rechargeait jamais.
+CORRECTION : le bouton deconnecte toujours (attente max 3 s, puis suppression de la session locale et rechargement). Le verrouillage reste disponible dans Mon profil > Verrouiller. L'ecran « Application verrouillée » propose « Se déconnecter / utiliser un autre compte ».
+NOTE : apres une deconnexion, l'empreinte de CET appareil est retiree (il faudra se reconnecter avec e-mail + mot de passe, puis la reactiver).
+FICHIERS : sync.js, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.

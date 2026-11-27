@@ -1,0 +1,8 @@
+CAT by Manda V4.42 - Connexion plus compacte + photos
+
+- Interface de connexion REDUITE sur ordinateur/tablette (carte 360 px au lieu de 400, champs, boutons et textes plus petits) : tient sans scroll a 100 % de zoom.
+- Panneau gauche (>= 900 px) : le LOGO CAT en evidence (84 px) + titre « Bienvenue sur CAT by Manda » + 3 photos (engin, equipe, Henri Fraise Fils & Cie) a la place des 3 cartes de texte et du badge « En ligne ».
+- Images ajoutees : img-login-1.jpg (equipe), img-login-2.jpg (chargeuse), img-login-3.jpg (HFF). Mises en cache pour le hors ligne.
+- Pour changer une photo : remplacer le fichier du meme nom (format ~ 4:3).
+FICHIERS : sync.js, sw.js, img-login-1/2/3.jpg, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.

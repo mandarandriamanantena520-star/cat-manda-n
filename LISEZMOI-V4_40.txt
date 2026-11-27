@@ -1,0 +1,7 @@
+CAT by Manda V4.40 - « Créer un compte » visible sur ordinateur
+
+PROBLEME : sur ordinateur, la carte de connexion (hauteur limitee a la fenetre, overflow:hidden) coupait le bas : le lien « Pas de compte ? Créer un compte » n'etait plus visible.
+CORRECTION : la carte devient defilable et, si la fenetre est peu haute (< 780 px), l'en-tete est reduit pour que tout tienne.
+ASTUCE SANS MISE A JOUR : Ctrl + molette (ou Ctrl et -) pour reduire le zoom, ou F11 (plein ecran).
+FICHIERS : sync.js, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.

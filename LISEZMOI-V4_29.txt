@@ -1,0 +1,7 @@
+CAT by Manda V4.29 - Fiche : NIVEAU GO toujours en LITRES
+
+- NIVEAU GO (06h J et 06h J+1) = valeur en litres (conversion du bareme a partir de la jauge en cm du releve).
+- Si une ancienne valeur en cm etait deja gardee dans la fiche (fiche enregistree avant), elle est remplacee par la valeur en litres a l'ouverture de la fiche.
+- Une valeur saisie a la main (differente du cm du releve) n'est pas touchee.
+FICHIERS MODIFIES : app.js, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, puis Ctrl+F5. Rouvrir la fiche, puis Enregistrer.

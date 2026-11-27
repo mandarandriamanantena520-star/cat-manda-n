@@ -1,0 +1,10 @@
+CAT by Manda V4.43 - Animations de l'ecran de connexion
+
+Animations CSS (legeres, sans bibliotheque), toutes desactivees automatiquement si l'appareil a « Reduire les animations » :
+- Carte : apparition douce ; champs et boutons : entree en cascade ; focus des champs avec leger soulevement.
+- Bouton Connexion : survol (soulevement + ombre), appui, et reflet anime pendant la connexion.
+- Message d'erreur : petit tremblement.
+- Ordinateur / tablette : fond avec deux halos lumineux (bleu / jaune) qui derivent lentement.
+- Ordinateur (>= 900 px) : logo CAT qui « pop » avec anneau pulsant ; « CAT » avec reflet dore qui defile ; les 3 photos arrivent en cascade puis flottent doucement.
+FICHIERS : sync.js, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.

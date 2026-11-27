@@ -1,0 +1,20 @@
+CAT by Manda V4.19 - Mon profil (Profil / Compte au meme endroit)
+
+NOUVEAU : fenetre « Mon profil » (profil.js)
+Ouvrable de 3 endroits : menu lateral > Mon profil ; Parametres > Profil ; Espace Chef > toucher la photo en haut.
+- Photo de profil : changer / retirer (restee sur CET appareil, une photo par compte, comme avant).
+- Nom affiche : modifiable (enregistre dans profiles.nom sur Supabase).
+- Adresse e-mail : changement avec e-mail de confirmation (Supabase). Les adresses d'exemple sont refusees.
+- Mot de passe : demande l'ancien, puis le nouveau (6 caracteres minimum) + confirmation.
+- Role et statut du compte (lecture seule).
+- Session : « Verrouiller l'application » (si l'empreinte est activee) et « Se deconnecter ».
+- Traductions FR / MG / EN deja ajoutees dans i18n.js.
+
+A FAIRE UNE FOIS (seulement pour modifier le NOM) : supabase/profil-securise.sql
+Si le serveur refuse la modification, l'appli affiche « Modification refusee par le serveur ». Il faut alors executer ce fichier
+dans Supabase > SQL Editor. Il ajoute une regle « chacun modifie sa ligne » ET un trigger qui interdit a un agent de changer
+son role / approved. Verifiez vos regles RLS existantes avant. Photo, e-mail et mot de passe marchent sans ce fichier.
+
+FICHIERS MODIFIES : sync.js, chef.js, app.js, index.html, sw.js, theme-bred.css, i18n.js, version.js, manifest.json.
+NOUVEAUX : profil.js, supabase/profil-securise.sql. Aucune donnee ni logique metier (PPS/DPR/planning) modifiee.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

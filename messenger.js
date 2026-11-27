@@ -49,7 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const outbox = () => mails().filter(m => m.uid === me()).sort((a, b) => b.ts - a.ts);
   const unread = () => inbox().filter(m => !isRead(m.mid)).length;
 
-  async function load() { msgs = await db.messages.toArray(); reads = await db.lus.toArray(); }
+  let loaded = false;   // true apres le 1er chargement : evite une notification pour tout l'ancien contenu
+  async function load() { msgs = await db.messages.toArray(); reads = await db.lus.toArray(); loaded = true; }
   // Annuaire = tous les comptes validés (Chefs ET agents) qui ont une vraie adresse e-mail.
   async function loadPeople() {
     peopleErr = '';
@@ -96,12 +97,14 @@ document.addEventListener('DOMContentLoaded', () => {
       openMail(mid);
     });
   }
+  const avOf = o => (window.CATavatarOf && window.CATavatarOf(o)) || '';   // V4.37 : photo partagee
+  const avSt = im => im ? ` style="background-image:url(${im});background-size:cover;background-position:center;color:transparent"` : '';
   function rowHtml(m) {
     const sent = m.uid === me(), un = !sent && !isRead(m.mid), on = sel.has(m.mid), r = rcpts(m);
     const who = sent ? 'À : ' + esc(r.filter(x => x !== myMail())[0] || r[0] || '') + (r.length > 1 ? ' +' + (r.length - 1) : '') : esc(m.nom || m.from || '?');
     const stt = !sent ? '' : ({ queued: '<em class="w">En attente de réseau · </em>', sending: '<em class="w">Envoi… · </em>', failed: '<em class="e">Non envoyé : touchez pour réessayer · </em>' }[m.state] || '');
     const ini = esc(String((sent ? myName() : (m.nom || m.from || '?'))).trim().slice(0, 1).toUpperCase());
-    return `<div class="ml-row${un ? ' un' : ''}${on ? ' on' : ''}" data-m="${m.mid}"><button type="button" class="ml-ck" data-ck="1" aria-label="Sélectionner">${on ? IC.ok : ini}</button>
+    return `<div class="ml-row${un ? ' un' : ''}${on ? ' on' : ''}" data-m="${m.mid}"><button type="button" class="ml-ck" data-ck="1" aria-label="Sélectionner"${avSt(avOf({ id: m.uid, email: m.from }))}>${on ? IC.ok : (avOf({ id: m.uid, email: m.from }) ? '' : ini)}</button>
       <div class="ml-mid"><div class="ml-l1"><b>${who}</b><small>${when(m.ts)}</small></div><div class="ml-l2">${esc(m.subject || '(sans objet)')}</div>
       <div class="ml-l3">${m.att ? '<span class="ml-clip">' + IC.clipS + '</span>' : ''}${stt}${esc(String(m.text || '').replace(/\s+/g, ' ').slice(0, 90))}</div></div></div>`;
   }
@@ -116,10 +119,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const el = $('msgBadge'); if (el) { el.textContent = u; el.style.display = u ? '' : 'none'; }
   }
   async function refresh(sound) {
-    const before = inbox().map(m => m.mid);
+    const before = inbox().map(m => m.mid), wasLoaded = loaded;
     await load();
-    const fresh = inbox().some(m => !before.includes(m.mid) && !isRead(m.mid));
-    if (before.length && fresh && sound) beep();
+    const N = window.CATnotif, s0 = N ? N.since() : 0;
+    const fresh = inbox().filter(m => !before.includes(m.mid) && !isRead(m.mid) && (!N || m.ts > s0));   // seulement le contenu arrive apres le 1er lancement
+    if (wasLoaded && fresh.length && sound) {
+      if (!N) beep();
+      else if (fresh.length > 3) N.notify({ kind: 'mail', title: fresh.length + ' nouveaux messages', body: String(fresh[0].subject || ''), tag: 'mail-multi' });
+      else fresh.reverse().forEach(m => N.notify({ kind: 'mail', title: 'Nouveau message' + (m.nom || m.from ? ' de ' + (m.nom || m.from) : ''), body: String(m.subject || '(sans objet)'), tag: 'mail' + m.mid }));
+    }
     render();
     if ($('mailView')) paintMail($('mailView').dataset.mid);
   }
@@ -185,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sent = m.uid === me(), cc = m.cc || [], bcc = m.bcc || [];
     v.innerHTML = `<div class="mv-bar2"><button type="button" data-a="back" aria-label="Retour">${IC.back}</button><span class="mc-sp"></span>${sent ? '' : `<button type="button" data-a="reply" aria-label="Répondre">${IC.reply}</button>`}<button type="button" data-a="del" aria-label="Supprimer">${IC.trash}</button></div>
       <div class="mv-sc"><h2>${esc(m.subject || '(sans objet)')}</h2>
-      <div class="mv-meta"><div class="ml-av">${esc(String(m.nom || m.from || '?').trim().slice(0, 1).toUpperCase())}</div><div class="mv-who"><b>${esc(m.nom || '')}</b> <small>&lt;${esc(m.from || '')}&gt;</small>
+      <div class="mv-meta"><div class="ml-av"${avSt(avOf({ id: m.uid, email: m.from }))}>${avOf({ id: m.uid, email: m.from }) ? '' : esc(String(m.nom || m.from || '?').trim().slice(0, 1).toUpperCase())}</div><div class="mv-who"><b>${esc(m.nom || '')}</b> <small>&lt;${esc(m.from || '')}&gt;</small>
         <br><small>À : ${esc(String(m.to || '').split(',').join(', '))}${cc.length ? '<br>Cc : ' + esc(cc.join(', ')) : ''}${sent && bcc.length ? '<br>Cci : ' + esc(bcc.join(', ')) : ''}</small></div><small class="mv-dt">${full(m.ts)}</small></div>
       <div class="mv-text">${esc(m.text || '').replace(/\n/g, '<br>')}</div>
       ${m.att ? `<div class="mv-att"><div class="mv-an">${IC.clip}<span><b>${esc(m.att.name)}</b><small>${esc(m.att.type)} · ${esc(m.att.date)}</small></span></div>
@@ -201,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
     $('mvPrint').onclick = () => { document.body.classList.add('print-msg'); window.print(); setTimeout(() => document.body.classList.remove('print-msg'), 600); };
     return v;
   }
-  const standalone = a => '<!doctype html><html><head><meta charset="utf-8"><title>' + esc(a.name) + '</title><style>@page{size:A4 landscape;margin:8mm}body{margin:10px;font-family:Arial,sans-serif}</style></head><body>' + a.html + '</body></html>';
+  const standalone = a => '<!doctype html><html><head><meta charset="utf-8"><title>' + esc(a.name) + '</title><style>@page{size:A4 landscape;margin:8mm}body{margin:10px;font-family:Arial,sans-serif}</style></head><body>' + a.html + '<script>addEventListener("beforeprint",function(){document.querySelectorAll(".dprx,.ppsx").forEach(function(e){e.style.zoom=1;var w=e.offsetWidth,h=e.offsetHeight;if(w&&h)e.style.zoom=Math.min(1.6,1030/w,700/h).toFixed(3)})})</script></body></html>';
   // Pièce jointe : PDF (CATpdf), sinon HTML en secours si le navigateur ne sait pas dessiner le rapport
   const u8b64 = u => { let s = ''; const n = 0x8000; for (let i = 0; i < u.length; i += n) s += String.fromCharCode.apply(null, u.subarray(i, i + n)); return btoa(s); };
   const baseName = a => String(a.name || 'rapport').replace(/\.(pdf|html?)$/i, '');
@@ -301,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const d = $('mcContacts'); if (!d || !C) return;
     const f = d.dataset.f, q = ($('mcCq') ? $('mcCq').value : '').trim().toLowerCase();
     const list = people.filter(p => p.email !== myMail() && (!q || (p.nom || '').toLowerCase().includes(q) || p.email.includes(q)));
-    const row = p => { const on = C[f].includes(p.email); return `<button type="button" class="mc-ct${on ? ' on' : ''}" data-ct="${esc(p.email)}"><span class="mc-ca">${on ? IC.ok : esc(String(p.nom || p.email).trim().slice(0, 1).toUpperCase())}</span><span class="mc-cn"><b>${esc(p.nom || p.email)}</b><small>${esc(p.email)} · ${p.role === 'chef' ? 'Chef' : 'Agent'}</small></span></button>`; };
+    const row = p => { const on = C[f].includes(p.email); return `<button type="button" class="mc-ct${on ? ' on' : ''}" data-ct="${esc(p.email)}"><span class="mc-ca"${avSt(avOf(p))}>${on ? IC.ok : (avOf(p) ? '' : esc(String(p.nom || p.email).trim().slice(0, 1).toUpperCase()))}</span><span class="mc-cn"><b>${esc(p.nom || p.email)}</b><small>${esc(p.email)} · ${p.role === 'chef' ? 'Chef' : 'Agent'}</small></span></button>`; };
     const chefs = list.filter(p => p.role === 'chef'), ags = list.filter(p => p.role !== 'chef');
     $('mcCl').innerHTML = (peopleErr ? `<p class="mc-cw">${esc(peopleErr)}${people.length ? ' (liste enregistrée affichée)' : ''}</p>` : '') +
       (chefs.length ? '<h4>Chefs</h4>' + chefs.map(row).join('') : '') + (ags.length ? '<h4>Agents</h4>' + ags.map(row).join('') : '') +

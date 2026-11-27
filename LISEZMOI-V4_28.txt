@@ -1,0 +1,8 @@
+CAT by Manda V4.28 - E-mails des rapports : modeles fixes DPR / PPS
+
+- DPR : objet « MHR-VTM/DPR_[date de realisation] » ; texte court (Bonjour chef, ... la DPR Mahanoro et Vatomandry du [date], Sincères salutations, [nom du chef connecte]).
+- PPS : objet « MHR-VTM/PPS_[date de realisation] » ; texte « situation de la centrale » MHR + VTM (6 lignes chacun, avec tirets), signature « Cordialement » + nom du chef connecte.
+  Consommation GO et Csp MHR = memes valeurs que le DPR. VTM : heure de marche (24 par defaut), production, consommation, Csp, pointe max, puissance dispo (768 kW par defaut) lues dans les Complements.
+- Le choix « Modele A / B » est supprime de Rapports (le modele depend du type de rapport).
+FICHIERS MODIFIES : chef.js, version.js, manifest.json, index.html. Aucune donnee modifiee.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, puis Ctrl+F5.

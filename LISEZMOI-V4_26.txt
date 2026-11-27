@@ -1,0 +1,18 @@
+CAT by Manda V4.26 - PPS : copie fidele du modele Excel « POWER PLANT STATUS » + formules liees a la fiche d'exploitation
+
+1) PPS (Espace Chef > Rapports > PPS, e-mail, PDF, messagerie)
+- La feuille est generee depuis le fichier Excel PPS_23_Novembre_2026_MHR : memes colonnes (A a W), memes cellules fusionnees,
+  memes couleurs (or / jaune clair / bleu PV / gris), memes bordures, polices, logo HENRI FRAISE FILS & Cie / CAT.
+- Formules (valeurs lues dans la fiche d'exploitation journalier) :
+  CTR horaire J-1 = Index HM EMCP (releve 06h J) ; CTR horaire J = Index HM EMCP (releve 06h J+1) ; Heure de marche = entier, sans virgule.
+  Compteur energie 06h00 J-1 / J = Index kWh JIRAMA (06h J / 06h J+1) ; le GE3, sans compteur JIRAMA dans la fiche, garde l'index EMCP.
+  Production (kWh) = production JIRAMA de chaque groupe (GE1 x 8, GE2 x 1).
+  Consommation (L) = meme valeur que dans le DPR (NIVEAU GO J + Qte appoints - NIVEAU GO J+1).
+  Taux de charge = production / heures / puissance nominale ; CSP carburant = consommation x densite / production ; CSP huile = appoint d'huile / heures.
+- PV, Pointe JOUR / NUIT, Heure de marche centrale, Pointe max enregistree, Delestages technique / economique, Declenchement general : comme avant, dans la mise en page du modele.
+- Controle : si la consommation totale (CONSOM GO) differe de la consommation de la centrale (stocks + transferts), la cellule est en rouge,
+  le bandeau « Fiche incorrecte » s'affiche et une confirmation est demandee avant l'envoi (comme pour le DPR).
+- Impression : le PPS tient sur UNE page A4 paysage.
+
+FICHIERS MODIFIES : chef.js, messenger.js, style.css, version.js, manifest.json, index.html. Aucune donnee modifiee.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

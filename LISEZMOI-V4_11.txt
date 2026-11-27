@@ -1,0 +1,11 @@
+CAT by Manda V4.11 - PPS en copie fidele du modele Excel
+
+CORRIGE
+- PPS reconstruit comme une copie du modele « POWER PLANT STATUS » (capture) : feuille de largeur fixe (1034 px, colonnes aux largeurs de l'Excel), en-tete dore avec CAT et bloc Date rapport / Centrale / Responsable / Prepare par / Realisation du, tableau 18 colonnes, ligne TOTAL jaune, bloc PV bleu, Pointes JOUR / NUIT, Pointe max en rouge, 3 tableaux Delestage cote a cote (6 lignes chacun).
+- Apercu Chef > Rapports : la feuille est reduite a la largeur de l'ecran (plus de defilement lateral ni d'en-tete coupe).
+- Arrondis : entiers partout, sauf CSP (2 decimales).
+
+PAS ENCORE FAIT : DPR en copie fidele de la capture 2 (arrondis et 24 h deja faits, mise en page a refaire), Vatomandry (PDF), styles Chef / Quart, themes BNI-Baobab-Telma, styles connexion et deconnexion, langues MG/FR/EN.
+Non teste sur un vrai telephone. Ideal pour une copie exacte : fournir le fichier Excel original (.xlsx) du PPS et du DPR.
+
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

@@ -1,0 +1,11 @@
+CAT by Manda V4.9 - PPS / DPR (suite de la V4.8)
+
+NOUVEAU
+1) PPS refait sur le modele « POWER PLANT STATUS » (capture 1) : en-tete dore, 18 colonnes, ligne TOTAL, bloc PV, pointes Jour/Nuit, Pointe max enregistree, 3 tableaux Delestage Technique / Economique / Declenchement Generale (6 lignes).
+2) Arrondis : tout est entier dans PPS et DPR (heure de marche, rendement, % auxiliaires...), SAUF le CSP (PPS : 2 decimales ; DPR : 1 decimale) et CSP huile / taux d'huile (2 decimales).
+3) DPR : Day Hours-Accountable = 24 h par groupe. X1 = heure de marche arrondie ; X3 et X4 (Complements du rapport) limites a 24 - X1 ; X2 = 24 - X1 - X3 - X4 (calcule).
+
+PAS ENCORE FAIT : mise en page du DPR identique a la capture 2 (arrondis et 24 h faits, colonnes/blocs de la V4.8), Vatomandry (PDF), styles Chef / Quart, themes BNI-Baobab-Telma, styles connexion et deconnexion, langues MG/FR/EN.
+Non teste sur un vrai telephone : verifier l'apercu et le PDF du PPS (Rapports > PPS).
+
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

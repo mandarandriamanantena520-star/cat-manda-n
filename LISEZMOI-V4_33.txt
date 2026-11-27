@@ -1,0 +1,11 @@
+CAT by Manda V4.33 - DPR / PPS : CUVE T (CT) toujours coherente avec la fiche
+
+CAUSE (fiche du 22/11/2026) : la fiche affichait CUVE T = 1100 -> 920 (valeurs recalculees a l'ouverture), mais le DPR lit la fiche ENREGISTREE,
+qui gardait d'anciennes valeurs (460 et 910). Resultat : Power plant fuel consumption = 1761 + 1940 - 2265 = 1436 au lieu de 2066.
+
+CORRECTION : le DPR / PPS deduisent maintenant CUVE T opening / available de la chaine des mouvements CT de la fiche (appoints + transferts) :
+- opening = CT AV qui n'est le CT AP d'aucun autre mouvement (22/11 : 1100) ; available = CT AP qui n'est le CT AV d'aucun autre (22/11 : 920).
+- si la chaine est ambigue, on garde la PIGE CUVE T de la fiche.
+Test avec la fiche du 22/11 : CONSOM GO = 632 + 748 + 686 = 2066 = Power plant fuel consumption (1100 + 1940 - 920 ... = 2066). Appoints CT 2120 = mouvement CT 2120.
+FICHIERS MODIFIES : chef.js, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5. Il n'est plus necessaire de re-enregistrer la fiche pour corriger le CT.

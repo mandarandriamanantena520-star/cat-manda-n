@@ -1,0 +1,18 @@
+CAT by Manda V4.12 - Espace Chef : meme style que l'accueil sur Fiches, Rapports, Quart, Employes et Compte
+
+NOUVEAU
+- Les 5 pages du Chef reprennent le style de l'accueil : en-tete bleu, feuille blanche arrondie, bandeau violet de page (titre + chiffre cle), cartes a ombre douce, boutons arrondis. Mode sombre pris en compte.
+- Onglets en pastilles avec icones (Accueil, Fiches, Rapports, Quart, Employes, Compte) : ils restent en haut pendant le defilement et l'onglet actif se centre tout seul.
+- Fiches : date en toutes lettres, 3 chiffres cles par fiche (kWh, L, CSP), bandeau « N en attente ».
+- Rapports : date + choix PPS / DPR en bouton segmente (l'apercu, le PDF, l'impression et l'e-mail ne changent pas).
+- Quart : bandeau « Aujourd'hui : agents de quart » ; le contenu et les boutons sont inchanges.
+- Employes : pastilles d'initiales visibles, noms plus petits ; le dossier (CIN, etc.) est inchange.
+- Compte : pastille d'initiale, bandeau « N en attente » (titre « Comptes »).
+
+FICHIERS MODIFIES : chef.js, theme-bred.css, version.js, index.html, manifest.json.
+NOUVEAU : LISEZMOI-V4_12.txt. Aucune donnee ni logique metier modifiee (Dexie, Supabase, PPS/DPR inchanges).
+
+PAS ENCORE FAIT : DPR en copie fidele de la capture 2, Vatomandry (PDF), themes BNI-Baobab-Telma, styles connexion et deconnexion, langues MG/FR/EN.
+Teste ici sur un navigateur simule (ecran 390 px, clair et sombre), pas sur un vrai telephone.
+
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

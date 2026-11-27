@@ -1,0 +1,13 @@
+CAT by Manda V4.8 - Premiere livraison (fonctions)
+
+CORRIGE / NOUVEAU
+1) Chef > Quart > « Modifier un jour precis » : la liste « Agent » propose tous les agents (dont Michel), quelle que soit la date.
+2) Appoint : le chronometre est supprime. Duree = Heure AP - Heure AV, en minutes, calculee en direct (avertissement si AP < AV). La fiche utilise cette duree ; les anciens appoints (MM:SS) restent lisibles.
+3) Fiche d'exploitation > ENTRETIEN GROUPE : valeur = valeur de la fiche de la veille + heure de marche du jour. Remise a 0 si un travaux concerne ce filtre. Rouge a partir de : HL 350 ; AIR 500 (G1, G2) et 250 (G3) ; GO 250 ; SEP 250. La valeur de depart (si la veille est vide) se saisit une fois a la main.
+4) E-mails DPR / PPS (Chef > Rapports) : textes remis a l'endroit (PPS = detaille, DPR = court ; le texte court ecrit le vrai type). Le choix deja enregistre dans le telephone est corrige une fois.
+5) Fiche d'exploitation : heure de marche arrondie (sans virgule).
+
+PAS ENCORE FAIT (prochaines etapes) : forme exacte PPS/DPR (captures), arrondis DPR/PPS et X2 = 24 h, Vatomandry (PDF), styles Chef / Quart, themes BNI-Baobab-Telma, styles connexion et deconnexion, langues MG/FR/EN.
+Non teste sur un vrai telephone : verifier surtout l'entretien groupe (fiche veille) et l'appoint.
+
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

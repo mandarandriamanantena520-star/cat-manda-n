@@ -9,10 +9,18 @@ const ASSETS = [
   './theme-bred.css',
   './app.js',
   './operations.js',
+  './i18n.js',
+  './about.js',
   './icons.js',
   './chef.js',
   './pdf.js',
   './messenger.js',
+  './notifs.js',
+  './son_1.m4a',
+  './img-login-1.jpg',
+  './img-login-2.jpg',
+  './img-login-3.jpg',
+  './profil.js',
   './config.js',
   './version.js',
   './icon-192.png',
@@ -58,4 +66,14 @@ self.addEventListener('fetch', (event) => {
 // Logique de bannière
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting();
+});
+
+// Notifications systeme : toucher une notification ouvre / ramene l'application
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const kind = event.notification.data && event.notification.data.kind;
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    if (list.length) { const c = list[0]; if (c.focus) c.focus(); c.postMessage({ type: 'notif-click', kind }); return; }
+    return self.clients.openWindow('./index.html');
+  }));
 });

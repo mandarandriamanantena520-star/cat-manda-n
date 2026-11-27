@@ -1,0 +1,10 @@
+CAT by Manda V4.30 - Correction des calculs (Fiche, PPS, DPR)
+
+1) PRODUCTION JIRAMA (fiche, bloc REALISATION DU JOUR) = G1 + G2 + G3
+- G1 = (Index JIRAMA J+1 - J) x 8 ; G2 = Index JIRAMA J+1 - J ; G3 = pas d'index JIRAMA : on prend la production HFF (EMCP) du G3.
+- Si l'index JIRAMA de G1 ou G2 manque, on prend leur production EMCP (meme regle que PPS / DPR).
+2) CONSOMMATION (PPS, DPR, accueil Chef, e-mails) = NIVEAU GO (06h J) + Qte appoints - NIVEAU GO (06h J+1), recalculee a partir des niveaux (plus de valeur figee d'une ancienne fiche). Un ecart de moins de 1 L n'est plus signale a tort.
+3) NIVEAU GO toujours en LITRES : une ancienne valeur en cm (entier 50 a 229) est convertie par le bareme, y compris la valeur reportee de la veille et celle lue par le PPS / DPR.
+4) CSP de la fiche (groupes + total) : 2 chiffres apres la virgule.
+FICHIERS MODIFIES : app.js, chef.js, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, puis Ctrl+F5. Rouvrir la fiche puis Enregistrer.

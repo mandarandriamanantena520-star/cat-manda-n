@@ -1,0 +1,11 @@
+CAT by Manda V4.38 - son_1 + notifications Chef automatiques
+
+1) SON : son_1.m4a (votre fichier son_1.mp3, renomme car c'est un AAC/M4A) devient le son de TOUTES les notifications (message, alerte, consigne, Chef). Il reste choisissable : Parametres > Notifications & sonnerie > « Son 1 ». Utilise aussi hors ligne.
+2) CHEF : sans actualiser, notification + son_1 + vibration environ 8 s apres :
+   - un NOUVEAU compte en attente de validation (ex. un agent qui vient de creer son compte) ;
+   - une NOUVELLE fiche soumise par un agent (arrive via la synchro : realtime ou max ~30 s).
+   L'Accueil / Compte / Validation se rafraichissent tout seuls quand il y a du nouveau.
+   Le Chef peut couper ces avis : Parametres > Notifications.
+LIMITE : fonctionne tant que l'application est ouverte (meme en arriere-plan selon le telephone). Application fermee = il faut le « Web Push » (serveur), non inclus.
+FICHIERS : notifs.js, app.js, chef.js, sw.js, son_1.m4a, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5. Appuyer une fois sur l'ecran apres l'ouverture (regle du navigateur) pour que le son soit autorise.

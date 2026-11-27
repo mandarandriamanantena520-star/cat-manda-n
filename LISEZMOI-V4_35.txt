@@ -1,0 +1,8 @@
+CAT by Manda V4.35 - Validation des fiches : barre de recherche + Filtre
+
+- Chef > Fiches : barre de recherche (date jj/mm/aaaa ou aaaa-mm-jj, texte de la note, statut) avec le bouton Filtre a gauche.
+- Filtre : statut (Toutes / En attente / Validees / Retournees) + mois. Pastille jaune = nombre de filtres actifs ; « Effacer les filtres ».
+- Sans recherche ni filtre : les 14 dernieres fiches (comme avant). Avec recherche/filtre : TOUTES les fiches sont parcourues.
+- Les boutons Ouvrir / Valider / Retourner fonctionnent comme avant ; la recherche et les filtres sont gardes apres une validation.
+FICHIERS MODIFIES : chef.js, style.css, i18n.js, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.

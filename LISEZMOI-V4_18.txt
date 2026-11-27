@@ -1,0 +1,18 @@
+CAT by Manda V4.18 - Suppression du style « Moderne » + Langue FR / MG / EN
+
+SUPPRIME
+- Style « Moderne » : theme-moderne.css, moderne.js, hero-centrale.jpg et la ligne « Style » des Parametres. BRED est le seul style.
+  L'ancien reglage « Style » enregistre sur l'appareil est efface automatiquement.
+
+NOUVEAU : LANGUE DE L'INTERFACE (Parametres > Apparence > Langue : FR / MG / EN)
+- i18n.js (nouveau) : remplace a l'affichage les textes francais par le malagasy ou l'anglais (menus, formulaires, Parametres, Chef,
+  messagerie, operations, connexion, messages alert/confirm/prompt). Le choix est garde sur l'appareil (cle catLang).
+- Les rapports (Fiche d'exploitation, PPS, DPR) ne sont JAMAIS traduits : ils restent en francais (PDF, impression, e-mail inchanges).
+- Le texte « A propos » est deja en malagasy : il ne change pas.
+- Pour corriger ou ajouter une traduction : ouvrir i18n.js, tableau T, ligne [francais, malagasy, english]
+  (null = garder le francais dans cette langue). Un texte absent du dictionnaire reste simplement en francais.
+- Le francais reste la langue par defaut : aucun changement tant que MG / EN n'est pas choisi.
+
+FICHIERS MODIFIES : index.html, app.js, sw.js, version.js, manifest.json. NOUVEAU : i18n.js.
+Aucune donnee ni logique metier modifiee.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CAT by Manda V4.7</title>
+  <title>CAT by Manda V4.45</title>
   <script src="version.js"></script>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="theme-pro.css">
@@ -102,7 +102,7 @@
       
       <button class="side-menu-item" onclick="openSettingsModal()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        Paramètres (Sauvegarde, Style)
+        Paramètres
       </button>
       <button class="side-menu-item" onclick="openHistoryModal()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -158,6 +158,7 @@
             <label>Temp. huile (°C) - G3</label>
             <input type="number" id="r-temp-huile">
           </div>
+          <div><label>Air ADM (°C)</label><input type="number" id="r-air-adm"></div>
           <div>
             <label>Transfo / Batterie (V)</label>
             <input type="number" step="any" inputmode="decimal" id="r-transfo">
@@ -165,7 +166,6 @@
           <div><label>RPM (tr/min)</label><input type="number" id="r-rpm"></div>
           <div><label>Heure marche (h)</label><input type="number" step="0.1" id="r-heure-marche"></div>
           <div><label>Pression gasoil (kPa)</label><input type="number" id="r-press-gasoil"></div>
-          <div><label>Air ADM (°C)</label><input type="number" id="r-air-adm"></div>
         </div>
 
         <div class="sec">JAUGEAGE GASOIL</div>
@@ -192,8 +192,8 @@
             <thead>
               <tr>
                 <th>Puiss.</th><th>Tens.</th><th>Intens.</th><th>Cos</th><th>RPM</th><th>Fréq.</th>
-                <th>T° Eau</th><th class="col-g3">T° Huile</th><th>Transfo</th><th>P. Huile</th>
-                <th>P. Gasoil</th><th>Air ADM</th><th>Énergie</th><th>Gasoil</th><th>H. Marche</th><th></th>
+                <th>T° Eau</th><th class="col-g3">T° Huile</th><th>Air ADM</th><th>Transfo</th><th>P. Huile</th>
+                <th>P. Gasoil</th><th>Énergie</th><th>Gasoil</th><th>H. Marche</th><th></th>
               </tr>
             </thead>
             <tbody id="tbody-releves"></tbody>
@@ -227,16 +227,11 @@
           <option value="À l'arrêt">À l'arrêt (hors service)</option>
         </select>
 
-        <div class="sec">Chronomètre de l'opération</div>
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-          <div style="flex:1; text-align:center; background:var(--bg); padding:15px; border-radius:8px; border:1px solid var(--border);">
-            <div style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Durée</div>
-            <div id="chrono-display" style="font-size:24px; font-weight:800; font-family:monospace; color:var(--primary);">00:00</div>
-          </div>
-        </div>
-        <div class="grid2">
-          <button type="button" class="btn btn-yellow" id="btn-start-chrono">Démarrer</button>
-          <button type="button" class="btn btn-black" id="btn-stop-chrono" disabled>Arrêter</button>
+        <div class="sec">Durée de l'opération</div>
+        <div style="text-align:center; background:var(--bg); padding:15px; border-radius:8px; border:1px solid var(--border); margin-bottom:10px;">
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Durée = Heure AP − Heure AV</div>
+          <div id="chrono-display" style="font-size:24px; font-weight:800; color:var(--primary);">0 min</div>
+          <div id="ap-duree-warn" style="font-size:12px; color:#E5484D; margin-top:4px;"></div>
         </div>
 
         <div class="sec">Heures d'opération</div>
@@ -509,48 +504,13 @@
             <div class="hc-t"><b>CAT by Manda</b><span>Mahanoro Power System</span></div>
           </div>
           <div class="hc-lab">Version</div>
-          <div class="hc-val"><b class="app-ver">V4.7</b></div>
+          <div class="hc-val"><b class="app-ver">V4.12.1</b></div>
         </div>
 
-        <div class="ab-card">
-          <div class="ab-h"><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></i><b>Mombamomba ny Application</b></div>
-          <ul>
-            <li><b>Mpamorona :</b> Manda Nandrianina (Creative Developer &amp; Digital Designer)</li>
-            <li><b>Natao manokana ho an'ny :</b> Henri Fraise Fils &amp; Cie — Tobim-pamokarana herinaratra Mahanoro Power System</li>
-            <li><b>Daty namoahana :</b> Novambra 2026</li>
-            <li><b>Version sy Teknolojia :</b> Version <span class="app-ver">V4.7</span> — Progressive Web App (PWA) mifanaraka amin'ny finday sy ordinatera.</li>
-          </ul>
-          <p>Ny CAT by Manda dia rindranasa maoderina natao hanamora sy handrindrana ny fitantanana ara-teknika sy ny fanaraha-maso ny fiasan'ireo milina mpamokatra herinaratra (Groupes Électrogènes G1, G2, G3) ao amin'ny Mahanoro Power System. Noforonina izy ity mba hanoloana ny fomba fiasa mahazatra amin'ny taratasy sy hanomezana fitaovana haingana, marina, ary azo antoka ho an'ny ekipa miasa eo an-toerana.</p>
-        </div>
+        <div class="ab-lang" id="abLang"></div>
+        <div id="abBody"></div>
 
-        <div class="ab-card">
-          <div class="ab-h"><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></i><b>Ireo fiasa fototra sy tombotsoa azo amin'ny fampiasana</b></div>
-          <ul>
-            <li><b>Fitehirizana numérique feno :</b> Tsy mila taratasy intsony amin'ny fanoratana ny relevés horaires, ny appoints gasoil, ny transferts, ary ny cahier de travaux. Voatahiry avy hatrany ao anatin'ny fitaovanao ny angon-drakitra rehetra.</li>
-            <li><b>Fikajiana automatique sy marina :</b> Ny kajy ara-teknika rehetra toy ny Barème C16, ny CSP, ny elanelan'ny solika (litatra sy santimetatra), ary ny faharetan'ny fiasana dia kajin'ny rindranasa ho azy mba hisorohana ny fahadisoana.</li>
-            <li><b>Fampiasana tsy mila Internet (Mode Offline) :</b> Noho ny teknolojia PWA, dia mandeha tsara sy haingana hatrany ny rindranasa na dia tapaka aza ny tambajotra Internet eo an-toerana.</li>
-            <li><b>Fitantanana ny fandaharam-potoana (Calendrier &amp; Tour de quart) :</b> Manamora ny fandrindrana ny fifandimbiasan'ny mpiasa (agents de quart) sy ny fitantanana ny fialan-tsasatra (congés) miaraka amin'ny fanitsiana mandeha ho azy ny fihodinana.</li>
-            <li><b>Famoahana tatitra haingana (Exportation) :</b> Afaka avoaka avy hatrany amin'ny endrika rakitra CSV ireo tabilao famintinana (tableaux récapitulatifs) mba hanamorana ny fanaraha-maso sy ny tatitra alefa any amin'ny lehibe (Espace Chef sy Fiche d'Exploitation).</li>
-          </ul>
-        </div>
-
-        <div class="ab-card">
-          <div class="ab-h"><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></i><b>Fiarovana ny angon-drakitra (Sauvegarde &amp; Sécurité)</b></div>
-          <p>Tehirizina mivantana ao anatin'ny fitadidian'ity fitaovana ity (finday na ordinatera ampiasainao) ny angon-drakitra rehetra ampidirinao mba hiantohana ny tsiambaratelo sy ny hafainganam-piasa. Noho izany, entanina mafy ny mpampiasa rehetra hanao « Exporter (JSON) » matetika ao amin'ny fizarana Paramètres mba hitahirizana kopia fiarovana (backup) sy mamerina ny asa vitanao rehetra raha sendra misy fahaverezana, fanoloana finday, na fanadiovana ny cache-n'ny navigateur.</p>
-        </div>
-
-        <div class="ab-card">
-          <div class="ab-h"><i><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M14.83 9.17l4.24-4.24M4.93 19.07l4.24-4.24"/></svg></i><b>Fanampiana teknika sy Fifandraisana (Support &amp; Contact)</b></div>
-          <p>Raha sendra misy olana ara-teknika (bug), fanontaniana momba ny fampiasana ny rindranasa, na soso-kevitra fanatsarana tianao haroso, dia aza misalasala mifandray mivantana amin'ny mpamorona :</p>
-          <div style="margin-top:6px">
-            <a class="ab-link first" href="https://wa.me/261382490150" data-ext="1"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></i><span><b>Finday / WhatsApp</b><small>+261 38 24 901 50</small></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="chev"><polyline points="9 18 15 12 9 6"/></svg></a>
-            <a class="ab-link" href="mailto:mandarandriamanantena520@gmail.com"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></svg></i><span><b>Adiresy Mailaka</b><small>mandarandriamanantena520@gmail.com</small></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="chev"><polyline points="9 18 15 12 9 6"/></svg></a>
-            <a class="ab-link" href="https://portfolio-manda.netlify.app/" data-ext="1" target="_blank" rel="noopener"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></i><span><b>Portfolio &amp; Tetikasa</b><small>portfolio-manda.netlify.app</small></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="chev"><polyline points="9 18 15 12 9 6"/></svg></a>
-            <a class="ab-link" href="https://www.facebook.com/manda.nandrianina.randriamanantena" data-ext="1" target="_blank" rel="noopener"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></i><span><b>Facebook</b><small>Manda Nandrianina</small></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="chev"><polyline points="9 18 15 12 9 6"/></svg></a>
-          </div>
-        </div>
-
-        <p class="ab-foot">© 2026 - Henri Fraise Fils &amp; Cie — Mahanoro Power System. Zo rehetra voatokana (Tous droits réservés).</p>
+        <p class="ab-foot" id="abFoot"></p>
       </div>
     </div>
   </div>
@@ -571,17 +531,20 @@
           <span class="tv-badge hidden" id="tvFilterBadge">0</span>
         </button>
       </div>
-      <div class="tv-filter-panel hidden" id="tvFilterPanel">
-        <label>Groupe
-          <select id="tvFGrp" aria-label="Groupe"><option value="">Tous groupes</option><option>G1</option><option>G2</option><option>G3</option></select>
-        </label>
-        <label>Date
-          <input type="date" id="tvFDate" aria-label="Date">
-        </label>
-        <label>Heure
-          <input type="time" id="tvFHeure" aria-label="Heure">
-        </label>
-        <button type="button" class="tv-btn" id="tvFReset" title="Réinitialiser les filtres">Réinitialiser</button>
+      <div class="tv-filter-panel hidden" id="tvFilterPanel" role="dialog" aria-label="Filtres">
+        <div class="tv-fp-head"><b>Filtres</b><button type="button" class="tv-fp-reset" id="tvFReset" title="Réinitialiser les filtres">Réinitialiser</button></div>
+        <div class="tv-fp-grid">
+          <label>Groupe
+            <select id="tvFGrp" aria-label="Groupe"><option value="">Tous les groupes</option></select>
+          </label>
+          <label>Date
+            <select id="tvFDate" aria-label="Date"><option value="">Toutes les dates</option></select>
+          </label>
+          <label>Heure
+            <select id="tvFHeure" aria-label="Heure"><option value="">Toutes les heures</option></select>
+          </label>
+        </div>
+        <div class="tv-fp-foot"><span id="tvFInfo"></span><button type="button" class="tv-fp-done" id="tvFDone">Terminé</button></div>
       </div>
     </div>
     <div class="tv-body">
@@ -615,12 +578,16 @@
   </nav>
 
   <script>document.title="CAT by Manda "+self.APP_VERSION;document.querySelectorAll(".app-ver").forEach(function(e){e.textContent=self.APP_VERSION})</script>
+  <script src="i18n.js"></script>
   <script src="icons.js"></script>
   <script src="app.js"></script>
   <script src="operations.js"></script>
   <script src="chef.js"></script>
   <script src="pdf.js"></script>
   <script src="messenger.js"></script>
+  <script src="notifs.js"></script>
+  <script src="about.js"></script>
+  <script src="profil.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="sync.js"></script>

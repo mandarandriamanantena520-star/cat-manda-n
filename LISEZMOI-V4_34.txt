@@ -1,0 +1,11 @@
+CAT by Manda V4.34 - Planning de quart : option « Équipes » (etape 1/3)
+
+AJOUT : dans Chef > Quart > Nouveau planning > etape 3, bouton « Agents | Équipes ». Le systeme agent est CONSERVE (rien n'est supprime).
+- Equipe 1 = Rojo, Faly, Koto, Rabe ; Equipe 2 = Feno, Setra, Lala, Mora (modifiables : membres, noms, ajout/suppression d'equipe, inversion de l'ordre).
+- En mode Équipes, la fiche d'exploitation (AQ) n'affiche que « Equipe 1 » (ou « Equipe 2 »). Le calendrier, l'accueil et le statut des employes montrent aussi les membres.
+- Rotation : option avancee « Changement d'équipe tous les (jours) » (1 = chaque jour, 7 = chaque semaine, etc.) en attendant de fixer la regle definitive.
+- Les conges individuels n'affectent pas la rotation des equipes. Les plannings passes ne changent pas (date d'effet).
+
+A FAIRE ENSUITE (V4.35+) : 2) barre de recherche + Filtre dans Validation des fiches ; 3) Rapports : import PDF externe a la place de « Compléments du rapport ».
+FICHIERS MODIFIES : app.js, chef.js, i18n.js, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.

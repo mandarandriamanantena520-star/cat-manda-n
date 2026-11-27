@@ -1,0 +1,12 @@
+CAT by Manda V4.12.1 - Espace Chef : memes structure et style que l'accueil
+
+CORRIGE (par rapport a la V4.12)
+- Fiches, Rapports, Quart, Employes et Compte ont maintenant exactement la structure de l'accueil : en-tete bleu de 203 px, feuille blanche a grand arrondi, carte violette flottante (meme carte que l'accueil : icone, titre, sous-titre, libelle + valeur), puis le contenu.
+- Bouton rond « < » en haut a droite de la carte : retour a l'accueil. Les pastilles Accueil / Fiches / Rapports / Quart / Employes / Compte sont sous la carte.
+- Employes (nouveau / modifier / dossier) : meme carte aussi.
+- Couleurs : bleu BRED fixe (plus de vert), le mode sombre est prevu.
+- Bug corrige : la V4.12 ajoutait au <body> une classe « chef-sub » qui reduisait la police et grisait le texte de toute la page.
+- L'accueil n'est pas modifie. Aucune logique metier modifiee (PPS/DPR, e-mail, PDF, planning, employes, comptes).
+
+FICHIERS MODIFIES : chef.js, theme-bred.css, version.js, index.html, manifest.json.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

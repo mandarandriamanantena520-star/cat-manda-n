@@ -1,0 +1,25 @@
+CAT by Manda V4.24 - DPR : copie fidele du modele Excel « DAILY PRODUCTION REPORT »
+
+1) DPR (Espace Chef > Rapports > DPR, e-mail, PDF, messagerie)
+- La feuille est maintenant une copie du fichier Excel DPR_MHR : meme grille (colonnes A a K), memes cellules fusionnees,
+  memes couleurs (gris D9D9D9), memes bordures (fines / epaisses), memes polices et tailles, logo HENRI FRAISE FILS & Cie / CAT.
+- Les valeurs sont remplies depuis la fiche d'exploitation avec les MEMES formules que l'Excel :
+  X1 = heure fin - heure debut ; X2 = 24 - X1 - X3 - X4 ; Production = compteur fin - debut ; Mensuel / Cumule ;
+  Fuel efficiency : Units/Ltr = kWh / Ltr ; gm/unit = Ltr x densite / kWh (production reelle, comme K30) ;
+  Production accountable : G1 = compteur JIRAMA x 8, G2 = JIRAMA, G3 = EMCP (comme H34:J34) ;
+  K44 = stock ouverture + recu - stock disponible (Gas Oil, cuves GE1/GE2/GE3 + cuve TAMPO) ; K45 = K44 x 830 / production accountable.
+- Date « Report date » = lendemain de la realisation (ex. realisation 22/11 -> 23-nov.-26), comme dans l'Excel.
+- Zone OBSERVATIONS / MAJOR EVENTS : texte des observations de la fiche (+ travaux).
+- Huile (Lube) : zone fusionnee C:J du modele -> « GE1 : x   GE2 : y   GE3 : z » si renseigne dans les Complements.
+
+2) POINTS A SAVOIR (ecarts volontaires par rapport au fichier Excel)
+- Bloc « Auxiliary power » : dans l'Excel les valeurs sont decalees d'une ligne par rapport aux libelles ; ici chaque valeur est
+  sur sa ligne (debut / fin / consommation / % / mois).
+- Les 0 et formules « parasites » des colonnes F/G (GE4/GE5 inutilises) du modele ne sont pas reproduits.
+- Libelle « Density as 0.84 » de l'Excel remplace par la densite reellement utilisee (0.83).
+- Le rapport fait 1014 px de large (au lieu de 1034) pour ne plus depasser de la feuille d'apercu.
+
+3) AUTRES
+- chef.js : nouveau dprHtml (gabarit genere depuis l'Excel) ; style de l'apercu (padding) corrige. PPS inchange.
+- version.js, manifest.json, index.html : V4.24. Aucune donnee modifiee.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

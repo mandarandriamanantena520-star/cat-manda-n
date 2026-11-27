@@ -1,0 +1,9 @@
+CAT by Manda V4.10 - Largeur de l'apercu PPS / DPR
+
+CORRIGE
+- Chef > Rapports : l'apercu PPS et DPR a maintenant la meme largeur que la fiche d'exploitation journalier : la feuille (1000 px) est reduite pour tenir dans l'ecran du telephone, sans defilement lateral. Boutons « - », « + » et « Ajuster » pour zoomer. L'impression et le PDF ne changent pas.
+
+PAS ENCORE FAIT : mise en page du DPR identique a la capture 2, Vatomandry (PDF), styles Chef / Quart, themes BNI-Baobab-Telma, styles connexion et deconnexion, langues MG/FR/EN.
+Non teste sur un vrai telephone.
+
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

@@ -1,0 +1,11 @@
+CAT by Manda V4.27 - Correction : impression / PDF des rapports (DPR, PPS) = feuille blanche
+
+CAUSE
+- La regle d'impression generale de l'application (style.css) masque toutes les pages « .page » sauf la fiche. Le Chef (#page-chef) est une page : elle etait donc masquee.
+- Une 2e regle masquait aussi le bloc qui contient le rapport (.rp-scroll), le rapport etant dans #chef-print a l'interieur.
+
+CORRECTION (style.css uniquement)
+- #page-chef et ses conteneurs sont affiches a l'impression (classe body.print-chef), seul le rapport reste visible.
+- Teste en impression Chrome : DPR et PPS = 1 seule page A4 paysage.
+
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA). Faire Ctrl+F5 dans le navigateur.

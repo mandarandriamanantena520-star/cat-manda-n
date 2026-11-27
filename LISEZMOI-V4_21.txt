@@ -1,0 +1,21 @@
+CAT by Manda V4.21 - Synchronisation (Parametres) + l'actualisation garde l'interface
+
+1) ACTUALISER = RESTER OU L'ON EST (correction)
+Avant : apres un rechargement de la page, l'application revenait a l'ecran de connexion / verrouillage et a la page « Releves ».
+Causes corrigees :
+- Verrouillage par empreinte : un simple rechargement (meme onglet / meme session) ne redemande plus l'empreinte.
+  L'empreinte reste exigee a l'ouverture a froid (application fermee puis rouverte), apres « Verrouillage automatique » et apres le bouton Deconnexion du menu.
+- Session sans reseau : si le jeton de connexion est expire et qu'il n'y a pas d'internet, l'utilisateur reste connecte avec son profil memorise
+  (avant : retour a l'ecran de connexion). Au retour d'internet, le jeton est renouvele puis la synchronisation reprend.
+- Page : la page ouverte est reprise apres rechargement, y compris Espace Chef et les pages ajoutees par operations.js (avant : retour a « Releves »).
+  La position de defilement est aussi reprise. Les champs en cours de saisie etaient deja gardes (brouillon).
+Non repris : une fenetre ouverte (Parametres, Historique...) et l'onglet interne de l'Espace Chef.
+
+2) NOUVEAU : Parametres > Synchronisation
+- Connexion (En ligne / Hors ligne), etat (Synchronise / En cours / Erreur), derniere synchronisation (date et heure),
+  nombre de modifications en attente d'envoi, derniere erreur eventuelle.
+- Bouton « Synchroniser maintenant ». Le panneau se met a jour tout seul.
+- Synchronisation automatique inchangee (toutes les 30 s + temps reel).
+
+FICHIERS MODIFIES : sync.js, app.js, i18n.js, index.html, version.js, manifest.json. Aucune donnee ni logique metier modifiee.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

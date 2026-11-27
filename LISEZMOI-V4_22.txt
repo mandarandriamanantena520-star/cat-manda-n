@@ -1,0 +1,18 @@
+CAT by Manda V4.22 - Historique global : filtres dynamiques, Air ADM, barre centree
+
+1) AIR ADM
+- Nouvelle place : apres T° Huile, avant Transfo / Batterie. Applique partout : tableau Historique global (Releves), tableau de la page Releves,
+  formulaire de saisie, export CSV.
+- Fenetre de detail (clic sur une ligne) : Air ADM s'affiche maintenant (il manquait). Il est aussi present dans le formulaire « Modifier ».
+
+2) FILTRES DYNAMIQUES (Historique global, bouton entonnoir)
+- La liste des filtres s'ouvre en fenetre flottante : le tableau ne bouge plus et ne descend plus.
+- Groupe / Date / Heure sont des LISTES DE CHOIX (plus de saisie libre) : elles ne proposent que les valeurs qui existent vraiment,
+  avec le nombre de lignes entre parentheses, et se mettent a jour selon la recherche et les autres filtres (ex. choisir G2 ne montre que les dates de G2).
+- Un champ inutile pour la rubrique est masque (ex. Groupe pour les Transferts). Un filtre devenu impossible est retire automatiquement.
+- Boutons Reinitialiser et Termine ; clic en dehors ou Echap ferme la liste. Le badge sur l'entonnoir compte les filtres actifs.
+
+3) BARRE DE RECHERCHE + FILTRES : centrees (telephone et ordinateur).
+
+FICHIERS MODIFIES : app.js, index.html, style.css, i18n.js, version.js, manifest.json. Aucune donnee modifiee.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

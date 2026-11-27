@@ -1,0 +1,7 @@
+CAT by Manda V4.44 - Texte de bienvenue anime (entree / sortie)
+
+Ecran de connexion sur ordinateur (>= 900 px) : « Bienvenue sur CAT by Manda » apparait mot par mot (montee + flou qui se dissipe), reste visible ~7 s, puis ressort mot par mot (vers le haut) et recommence, en boucle (cycle de 10 s). Le paragraphe suit avec un leger decalage. Le reflet dore de « CAT » est conserve.
+Desactive automatiquement si l'appareil a « Reduire les animations ».
+Reglage : changer 10s (duree du cycle) dans la regle txtCycle de sync.js ; 11% / 84% = debut / fin de la phase visible.
+FICHIERS : sync.js, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.

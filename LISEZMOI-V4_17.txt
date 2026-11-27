@@ -1,0 +1,10 @@
+CAT by Manda V4.17 - Style Moderne : meme design partout + correction des blocages
+
+CORRIGE
+- Parametres > Apparence (et toutes les sous-pages) : le bouton retour n'etait plus cliquable (le corps de la fenetre passait par-dessus l'en-tete) et le sous-titre chevauchait la barre. Corrige : en-tete fixe au-dessus, corps sans chevauchement.
+- A propos : le bouton retour est de nouveau cliquable.
+- Espace Chef, Parametres, A propos, fenetres de dialogue : plus aucune composition BRED (grandes courbes, carte flottante, fond sombre). Meme design que l'Accueil : en-tete blanc a filet jaune, cartes a bordure fine, tuiles a icone jaune, onglets jaune/noir.
+- Boutons et pastilles du Chef : jaune / blanc / noir uniquement.
+
+FICHIERS MODIFIES : theme-moderne.css, version.js, manifest.json. BRED inchange, aucune donnee ni logique metier modifiee.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

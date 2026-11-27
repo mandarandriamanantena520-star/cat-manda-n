@@ -1,0 +1,8 @@
+CAT by Manda V4.41 - Connexion adaptee ordinateur / tablette / telephone
+
+- ORDINATEUR (>= 900 px) : fond sombre, panneau « Bienvenue sur CAT by Manda » a gauche (cartes decoratives), carte de connexion compacte a droite avec « Créer un compte » juste sous le bouton. Plus besoin de reduire le zoom (Ctrl -).
+- TABLETTE (600-899 px) : meme carte compacte centree sur fond sombre.
+- TELEPHONE (< 600 px) : disposition inchangee, avec « Bienvenue » + « Connectez-vous pour continuer ».
+- S'applique aussi aux ecrans « Création de compte », « Verrouillé », « En attente ».
+FICHIERS : sync.js, version.js, manifest.json, index.html.
+Mise en place : remplacer le dossier, Parametres > Sauvegarde > Mettre a jour, Ctrl+F5.

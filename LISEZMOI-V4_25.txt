@@ -1,0 +1,23 @@
+CAT by Manda V4.25 - DPR : formules alignees sur la fiche d'exploitation + impression sur 1 page A4 paysage
+
+1) FORMULES DU DPR (toutes lues dans la fiche d'exploitation journalier)
+- Hour Meter Reading at Start / End = Index HM EMCP (releve 06h J / 06h J+1), en nombre entier : sans virgule ni separateur.
+- Engine running hours (X1) = Heure de marche de la fiche.
+- Noload Outage hours (X2) = 24 - X1 (- X3 - X4 si renseignes dans les Complements). Exemple : X1 = 15 -> X2 = 9.
+- Day Hours-Accountable = X1 + X2 (+ X3 + X4) = 24 h pour chaque groupe.
+- Energy Meter Reading at Start / End (EMCP) = Index kWh EMCP (06h J / 06h J+1).
+- Power production - Today = production HFF de la fiche ; monthly = cumul du mois ; Commulative = Index kWh EMCP (06h J+1).
+- Gas Oil Consumption - Actual = NIVEAU GO (06h J) + Qte appoints - NIVEAU GO (06h J+1), par groupe.
+- Bloc JIRAMA : Index kWh JIRAMA (06h J / 06h J+1), production Jirama par groupe + cellule TOTAL. Le groupe 3 n'ayant pas de compteur JIRAMA dans la fiche, il garde l'index EMCP (comme avant).
+- Gas Oil opening (Yesterday) balance = NIVEAU GO (06h J) ; Gas Oil available (Today) = NIVEAU GO (06h J+1).
+- Colonne de droite (K) : total des cellules de la ligne (ajout des totaux manquants : index kWh debut/fin, debitmetres, production accountable debut/fin, X1+X2+X3+X4).
+
+2) CONTROLE CONSOM GO = Power plant fuel consumption
+- Les deux valeurs doivent etre egales. Sinon : cellules en rouge dans le DPR, bandeau rouge « Fiche incorrecte » dans Rapports > DPR, et confirmation demandee avant l'envoi par e-mail.
+- Si un NIVEAU GO ou une PIGE CUVE T manque, le bandeau indique « stock gasoil incomplet » (avant : la valeur etait copiee sans verification).
+
+3) IMPRESSION
+- Le DPR est reduit automatiquement pour tenir sur UNE seule page A4 paysage (apercu Chef, messagerie, fichier HTML joint). Le PDF e-mail l'etait deja.
+
+FICHIERS MODIFIES : chef.js, messenger.js, style.css, version.js, manifest.json, index.html. Aucune donnee modifiee.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

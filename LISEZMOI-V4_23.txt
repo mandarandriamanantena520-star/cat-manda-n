@@ -1,0 +1,35 @@
+CAT by Manda V4.23 - Planning de quart (Espace Chef) : nouvel editeur visuel
+
+1) NOUVEL EDITEUR (Espace Chef > Quart)
+- Carte « Aujourd'hui » : qui travaille a chaque poste, repos, conges, remplacements.
+- Carte « Nouveau planning », en 5 etapes :
+  1. Date d'effet (le passe n'est jamais reecrit).
+  2. Postes de la journee : nom + heure de debut + heure de fin. Bouton « Scinder » = coupe un poste en deux au milieu
+     (ex. Jour 07:00-17:00 devient Matin 07:00-12:00 + Apres-midi 12:00-17:00 ; le poste de nuit n'est pas touche).
+     Boutons rapides « Jour / Nuit » et « Matin / Apres-midi / Nuit », « Ajouter un poste », corbeille.
+     Frise de 24 h : les heures non couvertes (hachures) et les chevauchements (rouge) sont signales.
+  3. Agents : ordre de rotation (fleches haut / bas), ajout (liste des agents de quart des dossiers employes), retrait, import.
+     L'etiquette coloree montre le poste de chaque agent le jour d'effet. Alerte s'il y a moins d'agents que de postes.
+  4. Rotation : « Continuer le cycle actuel » ou « Recommencer a la date d'effet ».
+     Options avancees : pas de rotation (vide = automatique) et jours bloques (puces).
+  5. Apercu des 7 premiers jours (tient compte des conges) avant d'enregistrer.
+- Rien n'est enregistre avant « Appliquer ce planning ». « Annuler les changements » recharge le planning en vigueur.
+- « Modifier un jour précis » : meme logique qu'avant (remplacer un agent / echanger deux postes), presentation refaite.
+- « Historique des plannings » : liste repliable, « Utiliser comme base » recharge une periode dans l'editeur.
+- Pas de rotation automatique : = nombre de postes, sauf si le nombre de postes est un multiple du nombre d'agents
+  (ex. 3 postes / 3 agents), auquel cas le pas vaut 1 pour que la rotation ne soit pas figee.
+
+2) CORRECTIONS DU CALENDRIER (page Calendrier)
+- La grille du mois s'arrete maintenant a la bonne ligne (avant : derniere ligne incomplete dans 37 mois sur 72, ex. fevrier 2027).
+- Les jours avec un echange (bordure jaune) sont visibles meme quand aucun conge n'est enregistre.
+
+3) FICHE D'EXPLOITATION
+- Avec 3 postes, « AQ JOUR MIDI » est prerempli avec l'agent du poste du milieu (matin et nuit comme avant).
+
+4) AUTRES
+- icons.js : icones SVG ajoutees (plus, trash, split, chevup, chevdown, close, sun, moon, swap). Aucun emoji.
+- i18n.js : textes de l'editeur traduits (FR / MG / EN).
+- app.js : getSched(date, plan) accepte un plan hypothetique (apercu), sans toucher aux echanges ni aux donnees.
+
+FICHIERS MODIFIES : chef.js, app.js, icons.js, i18n.js, theme-bred.css, index.html, version.js, manifest.json. Aucune donnee modifiee.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

@@ -1,0 +1,27 @@
+CAT by Manda V4.20 - Notifications & sonnerie (messagerie, alertes, consignes)
+
+NOUVEAU : Parametres > Notifications (et notifs.js)
+- Interrupteur general, sonnerie oui/non, volume (Bas / Moyen / Fort), vibration.
+- 3 types : Messagerie (nouveau mail recu), Alertes (valeurs hors limites + declenchements : Chef uniquement), Consignes (publiees par le Chef).
+- Son au choix par type (messagerie : Ding / Double / Cloche ; alerte : Alarme / Sirene / Double ; consigne : Double / Cloche / Ding) + bouton Tester.
+  Les sons sont synthetises (aucun fichier audio a ajouter).
+- Mode silencieux (plage horaire, ex. 22:00 - 06:00, passe minuit) : coupe son et vibration. Les ALERTES sonnent toujours.
+- Banniere dans l'application (toucher = ouvre Messages / Espace Chef ; pour un agent, la consigne s'ouvre dans l'historique).
+- Notifications du systeme (Android / ordinateur) quand l'application est en arriere-plan : bouton « Activer » (demande l'autorisation).
+- Historique des 30 dernieres notifications (Parametres > Notifications). Utile aux agents : ils ne voient les consignes nulle part ailleurs.
+
+COMPORTEMENT
+- Aucune notification pour l'ancien contenu : seul ce qui arrive APRES le premier lancement de V4.20 sur l'appareil est notifie.
+- Sa propre saisie ne declenche pas de notification (comparaison du nom du profil).
+- Messagerie : le premier message recu fait maintenant aussi sonner (avant, rien tant que la boite etait vide).
+- Les notifications arrivent a la synchronisation (toutes les 30 s ou en temps reel quand l'appli est ouverte).
+
+LIMITE
+- Sans serveur « push » (Web Push + cle VAPID + fonction Supabase), une notification systeme n'arrive pas si l'application est completement fermee.
+  Cela peut etre ajoute plus tard (V4.21) si besoin.
+- Sur iPhone, les notifications systeme exigent que l'application soit installee sur l'ecran d'accueil (iOS 16.4 minimum).
+- L'icone de l'onglet Alertes (Parametres) devient un triangle, pour la distinguer de Notifications (cloche).
+
+FICHIERS MODIFIES : app.js, messenger.js, sw.js, index.html, i18n.js, style.css, version.js, manifest.json.
+NOUVEAUX : notifs.js. Aucune donnee ni logique metier (PPS/DPR/planning) modifiee.
+Mise en place : remplacer tout le contenu du dossier du site, puis Parametres > Sauvegarde > Mettre a jour (vide le cache PWA).

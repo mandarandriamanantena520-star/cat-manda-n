@@ -11,7 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function markNav(t) {
     document.querySelectorAll('.side-menu-item').forEach(b => b.classList.toggle('active', (b.getAttribute('onclick') || '').includes("'" + t + "'")));
   }
+  let navigated = false, restoring = false;   // navigated = l'utilisateur a change de page lui-meme depuis le chargement
   function showPage(target) {
+    if (!restoring) navigated = true;
     try { localStorage.setItem('catPage', target); } catch (e) {}
     markNav(target);
     document.body.classList.toggle('on-chef', target === 'page-chef');
@@ -88,6 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   const savedAccent = localStorage.getItem('accent');
   if(savedAccent) setAccent(savedAccent);
+
+  // Ancien réglage « Style » (Moderne) supprimé en V4.18 : on nettoie la valeur restée sur l'appareil.
+  try { localStorage.removeItem('catStyle'); delete document.documentElement.dataset.style; } catch (e) {}
 
   window.openSettingsModal = function() {
     document.getElementById('settingsModal').classList.add('open');
@@ -176,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return baremeC16[d][u];
   }
 
+  window.catMmToL = mmToL;   // V4.30 : utilise par chef.js (NIVEAU GO toujours en litres)
   const rGasoilMm = document.getElementById('r-gasoil-mm');
   if(rGasoilMm) {
     rGasoilMm.addEventListener('input', (e) => {
@@ -256,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       tr.innerHTML = `
         <td>${p}</td><td>${t}</td><td>${i}</td><td>${c}</td><td>${rpm}</td><td>${f}</td>
-        <td>${te}</td><td class="col-g3">${th}</td><td>${trf}</td><td>${ph}</td><td>${pg}</td><td>${air}</td>
+        <td>${te}</td><td class="col-g3">${th}</td><td>${air}</td><td>${trf}</td><td>${ph}</td><td>${pg}</td>
         <td>${e}</td><td>${g}</td><td>${hm}</td>
         <td style="text-align:center; padding: 4px 8px;">
           <button class="btn-del" style="background:#E5484D; color:white; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
@@ -288,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const rows = await db.relevés.where('groupe').equals(g).toArray();
       if(!rows.length) { alert("Tsy misy relevé hatao export."); return; }
       rows.sort((a, b) => ((a.date || '') + (a.heure || '')).localeCompare((b.date || '') + (b.heure || '')));
-      const keys = ['date','heure','groupe','puissance','tension','intensite','cos','rpm','frequence','tempEau','tempHuile','transfo','pressHuile','pressGasoil','energie','gasoilLitres','heureMarche','airAdm'];
+      const keys = ['date','heure','groupe','puissance','tension','intensite','cos','rpm','frequence','tempEau','tempHuile','airAdm','transfo','pressHuile','pressGasoil','energie','gasoilLitres','heureMarche'];
       const csv = [keys.join(';')].concat(rows.map(r => keys.map(k => '"' + String(r[k] ?? '').replace(/"/g, '""') + '"').join(';'))).join('\r\n');
       downloadFile('releves_' + g + '_' + localDateStr() + '.csv', '\ufeff' + csv, 'text/csv;charset=utf-8');
     });
@@ -347,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function calcAppoint() {
     if(!apAvMm || !apApMm) return;
+    if (chronoDisplay) { const okh = apHeureAv && apHeureAp && apHeureAv.value && apHeureAp.value; chronoDisplay.textContent = (okh ? calcDiffMinutes(apHeureAv.value, apHeureAp.value) : 0) + ' min'; const w = document.getElementById('ap-duree-warn'); if (w) w.textContent = (okh && apHeureAp.value < apHeureAv.value) ? "Attention : l'heure après est avant l'heure avant." : ''; }
     const av = parseFloat(apAvMm.value) || 0, ap = parseFloat(apApMm.value) || 0;
     const marche = apEtat && apEtat.value === "En marche";
     const mins = marche ? calcDiffMinutes(apHeureAv.value, apHeureAp.value) : 0;
@@ -384,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await db.appoints.add(newAppoint); alert("Appoint enregistré avec succès !");
         document.getElementById('ap-av-mm').value = ''; document.getElementById('ap-ap-mm').value = '';
         document.getElementById('ap-heure-av').value = ''; document.getElementById('ap-heure-ap').value = '';
-        document.getElementById('ap-obs').value = ''; calcAppoint(); chronoDisplay.textContent = "00:00"; loadHistorique();
+        document.getElementById('ap-obs').value = ''; calcAppoint(); chronoDisplay.textContent = "0 min"; loadHistorique();
       } catch (error) { console.error(error); }
     });
   }
@@ -558,7 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
     p.step = +p.step || p.postes.length; p.start = p.start || '2026-11-16'; p.bloques = p.bloques || DEF_BLOCK; return p;
   }
   const rosterFor = d => planFor(d).agents;
-  const allNames = () => [...new Set(rosterList().flatMap(r => r.agents || []))];
+  const allNames = () => [...new Set(rosterList().flatMap(r => [...(r.agents || []), ...(r.mode === 'equipes' ? (r.equipes || []).flatMap(t => [t.nom, ...(t.membres || [])]) : [])]))];   // V4.34 : + equipes et leurs membres
   window.CATrosterList = rosterList; window.CATdefRoster = () => DEF_ROSTER; window.CATplanFor = planFor;
   window.CATswaps = () => roster.filter(r => r.kind === 'swap');
   let viewYear = new Date().getFullYear(); let viewMonth = new Date().getMonth();
@@ -569,16 +576,23 @@ document.addEventListener('DOMContentLoaded', () => {
   function onLeave(n, d) { return leaves.some(l => n === l.name && d >= new Date(l.start + 'T00:00:00') && d <= new Date(l.end + 'T00:00:00')); }
 
   // Rotation sur les agents PRÉSENTS (congés exclus) : à chaque congé la rotation se recalcule (4 → 3, etc.).
-  function getSched(date) {
-    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate()), iso = localDateStr(d), p = planFor(d);
+  function getSched(date, pOverride) {   // pOverride : plan hypothétique (aperçu de l'éditeur du Chef), sans échanges ponctuels
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate()), iso = localDateStr(d), p = pOverride || planFor(d);
+    if (p.mode === 'equipes' && p.equipes && p.equipes.length) {   // V4.34 : rotation par EQUIPES (le mode agents reste inchange ci-dessous)
+      const T = p.equipes, nt = T.length, per = Math.max(1, +p.per || 1), dd = Math.floor((d - new Date(p.start + 'T00:00:00')) / 86400000), kk = Math.floor(dd / per), bs = (((kk * p.step) % nt) + nt) % nt;
+      const sl = p.postes.map((po, i) => ({ poste: po, agent: i < nt ? T[(bs + i) % nt].nom : '—', membres: i < nt ? (T[(bs + i) % nt].membres || []).slice() : [] }));
+      if (!pOverride) roster.filter(r => r.kind === 'swap' && r.date === iso).forEach(w => { const s1 = sl[w.poste]; if (s1) { s1.orig = s1.orig || s1.agent; s1.agent = w.agent; s1.membres = []; s1.by = w.by; s1.at = w.at; } });
+      const us = new Set(sl.map(x => x.agent));
+      return { slots: sl, repos: T.map(t => t.nom).filter(x => !us.has(x)), conge: [], plan: p, jour: sl[0].agent, nuit: sl[sl.length - 1].agent, equipes: true };
+    }
     const present = p.agents.filter(n => !onLeave(n, d)), conge = p.agents.filter(n => onLeave(n, d)), n = present.length;
     const diff = Math.floor((d - new Date(p.start + 'T00:00:00')) / 86400000), base = n ? (((diff * p.step) % n) + n) % n : 0;
     const slots = p.postes.map((po, i) => ({ poste: po, agent: i < n ? present[(base + i) % n] : '—' }));
-    roster.filter(r => r.kind === 'swap' && r.date === iso).forEach(w => { const sl = slots[w.poste]; if (sl) { sl.orig = sl.orig || sl.agent; sl.agent = w.agent; sl.by = w.by; sl.at = w.at; } });
+    if (!pOverride) roster.filter(r => r.kind === 'swap' && r.date === iso).forEach(w => { const sl = slots[w.poste]; if (sl) { sl.orig = sl.orig || sl.agent; sl.agent = w.agent; sl.by = w.by; sl.at = w.at; } });
     const used = new Set(slots.map(x => x.agent));
     return { slots, repos: present.filter(a => !used.has(a)), conge, plan: p, jour: slots[0].agent, nuit: slots[slots.length - 1].agent };
   }
-  window.CATsched = getSched;
+  window.CATsched = getSched; window.CATallNames = allNames;
 
   function fmtLong(d) { return weekdaysFr[(d.getDay()+6)%7] + ' ' + d.getDate() + ' ' + monthsFr[d.getMonth()] + ' ' + d.getFullYear(); }
 
@@ -600,21 +614,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const off = (first.getDay() + 6) % 7; 
     const todayObj = new Date();
 
-    for (let i = 0; i < 42; i++) {
+    const nCells = Math.ceil((off + new Date(viewYear, viewMonth + 1, 0).getDate()) / 7) * 7;   // V4.23 : lignes completes uniquement
+    for (let i = 0; i < nCells; i++) {
       let d = new Date(viewYear, viewMonth, 1 - off + i);
       let isO = d.getMonth() !== viewMonth; 
       let div = document.createElement('div');
       div.className = 'day';
       if (isO) div.style.opacity = '0.4';
       if (d.toDateString() === todayObj.toDateString()) div.classList.add('today');
-      if (leaves.length) { const sc = getSched(d); if (sc.conge.length) div.style.borderColor = '#E5484D'; if (sc.slots.some(x => x.orig)) div.style.borderColor = '#FFCC11'; }
+      { const sc = getSched(d); if (sc.conge.length) div.style.borderColor = '#E5484D'; if (sc.slots.some(x => x.orig)) div.style.borderColor = '#FFCC11'; }   // V4.23 : les echanges sont visibles meme sans conge
       div.innerHTML = `<div>${d.getDate()}</div>`;
       div.addEventListener('click', () => {
         const iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
         openModal(iso);
       });
       cal.appendChild(div);
-      if (i > 35 && d.getMonth() !== viewMonth && d.getDate() > 7) break;
     }
   }
 
@@ -628,13 +642,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // 8. MODAL JOUR
   // ==========================================
-  function resolveLeave(d, s) { return { jour: { name: s.jour }, nuit: { name: s.nuit } }; }   // compat fiche : 1er et dernier poste
+  function resolveLeave(d, s) { return { jour: { name: s.jour }, midi: s.slots.length === 3 ? { name: s.slots[1].agent } : null, nuit: { name: s.nuit } }; }   // compat fiche : 1er et dernier poste
   const fdt = ts => { const x = new Date(ts); return x.toLocaleDateString('fr-FR') + ' ' + x.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); };
   function openModal(iso) {
     const d = new Date(iso + 'T00:00:00'), s = getSched(d);
     document.getElementById('modalTitle').textContent = fmtLong(d);
     document.getElementById('modalSubtitle').textContent = 'Mahanoro';
-    document.getElementById('modalAgents').innerHTML = s.slots.map(x => `<div class="agent-row" style="margin-bottom:10px;"><div><b>${escH(x.agent)}</b><small>${escH(x.poste.nom)} ${x.poste.debut}–${x.poste.fin}${x.orig ? ' · remplace ' + escH(x.orig) + ' (modifié' + (x.by ? ' par ' + escH(x.by) : '') + (x.at ? ' le ' + fdt(x.at) : '') + ')' : ''}</small></div></div>`).join('')
+    document.getElementById('modalAgents').innerHTML = s.slots.map(x => `<div class="agent-row" style="margin-bottom:10px;"><div><b>${escH(x.agent)}</b><small>${escH(x.poste.nom)} ${x.poste.debut}–${x.poste.fin}${x.membres && x.membres.length ? '<br>' + x.membres.map(escH).join(', ') : ''}${x.orig ? ' · remplace ' + escH(x.orig) + ' (modifié' + (x.by ? ' par ' + escH(x.by) : '') + (x.at ? ' le ' + fdt(x.at) : '') + ')' : ''}</small></div></div>`).join('')
       + (s.repos.length ? `<p style="font-size:13px;color:var(--text-muted)">Repos : ${s.repos.map(escH).join(', ')}</p>` : '') + (s.conge.length ? `<p style="font-size:13px;color:#E5484D">En congé : ${s.conge.map(escH).join(', ')}</p>` : '');
     document.getElementById('dayModal').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -691,6 +705,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const G = [1, 2, 3];
   const fNum = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(n) ? null : n; };
   const fmt = (v, d = 0) => (v == null || isNaN(v)) ? '' : (+v).toFixed(d);
+  // V4.30 : NIVEAU GO = toujours en LITRES. Un entier sans virgule entre 50 et 229 = ancienne valeur en cm -> convertie par le bareme.
+  const nivNorm = raw => { const t = String(raw ?? '').trim(); if (t === '') return ''; if (/^\d{2,3}$/.test(t) && +t >= 50 && +t <= 229) { const l = mmToL(t); return l === '' ? t : (+l).toFixed(2); } const n = fNum(t); return n == null ? t : n.toFixed(2); };
   const mmToLs = mm => { if (mm == null) return null; const v = mmToL(mm); return v !== '' ? v : mm * 3.8837; };
   const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return localDateStr(d); };
   const dayOf = (date, heure) => (heure && heure < '06:00') ? addDays(date, -1) : date; // andro fiche = 06h → 06h
@@ -748,7 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="fp-band"><div>
       <div class="fp-sub">TRANSFERT GO : CITERNE VERS CUVE 2 500 L</div>
       <table class="fp-t"><tr><th>CITERNE</th><th>PIGE AV</th><th>PIGE AP</th><th>COMPTEUR</th><th>CUVE T AV</th><th>CUVE T AP</th><th>QTÉ</th></tr>${trR}</table>
-      <div class="fp-sub">APPOINT GO GROUPE <small>(ligne 1 = litres groupe · ligne 2 = Cuve T en cm)</small></div>
+      <div class="fp-sub">APPOINT GO GROUPE <small>(ligne 1 = litres groupe · ligne 2 = Cuve T (CT) : sert à la consommation)</small></div>
       <table class="fp-t"><tr><th rowspan="2"></th>${G.map(n => `<th colspan="3">GE${n}</th>`).join('')}</tr>
         <tr>${G.map(() => '<th>AVANT</th><th>APRES</th><th>Qté (L)</th>').join('')}</tr>${apR}</table></div>
       <div><div class="fp-sub">TRAVAUX</div><table class="fp-t"><tr><td><textarea data-k="trav" style="min-height:300px"></textarea></td></tr></table></div></div>
@@ -777,10 +793,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // NIVEAU GO = valeur déjà convertie en litres (relevé le plus proche de 06h qui a une jauge)
     const nivL = r => { if (!r) return null; const a = fNum(r.gasoilLitres); if (a != null) return a; const b = mmToL(r.gasoilMm); return b === '' ? null : b; };
     const hasNiv = r => nivL(r) != null;
-    const rel = {}, niv = {};
+    const rel = {}, niv = {}, nivCm = {};
     for (const n of G) {
       rel[n] = [await near(n, d), await near(n, d1)];
-      niv[n] = [nivL(await near(n, d, hasNiv, 180)), nivL(await near(n, d1, hasNiv, 180))];
+      const r0 = await near(n, d, hasNiv, 180), r1 = await near(n, d1, hasNiv, 180);
+      niv[n] = [nivL(r0), nivL(r1)];
+      nivCm[n] = [r0 ? fNum(r0.gasoilMm) : null, r1 ? fNum(r1.gasoilMm) : null];   // jauge en cm (pour corriger les anciennes valeurs)
     }
     // Ordre chronologique réel dans la journée de fiche (06h → 06h) : 1er appoint, 2ème appoint...
     const m6 = h => (h && /^\d{1,2}:\d{2}/.test(h)) ? ((+h.slice(0, 2)) * 60 + (+h.slice(3, 5)) - 360 + 1440) % 1440 : null;
@@ -794,25 +812,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const aps = (await db.appoints.toArray()).filter(a => dayOf(a.date, a.heureAv) === d).sort(chrono(a => a.heureAv || a.heureAp));
     const trs = (await db.transferts.toArray()).filter(t => dayOf(t.date, t.heure) === d).sort(chrono(t => t.heure));
     const tws = await db.travaux.where('date').equals(d).toArray();
-    return { rel, niv, aps, trs, tws };
+    return { rel, niv, nivCm, aps, trs, tws };
   }
 
+  const JCOEF = (() => { try { const c = JSON.parse(localStorage.getItem('chefCfg') || '{}').coef; return Array.isArray(c) && c.length >= 2 ? c : [8, 1, 1]; } catch (e) { return [8, 1, 1]; } })();
   function compute() {
     const g = k => fNum((el(k) || {}).value);
     let tp = 0, tc = 0, tj = 0, aP = false, aC = false, aJ = false;
     G.forEach(n => {
       const p = (g('kwh1_' + n) != null && g('kwh0_' + n) != null) ? g('kwh1_' + n) - g('kwh0_' + n) : null;        // HFF = EMCP J+1 − J
       const h = (g('hm1_' + n) != null && g('hm0_' + n) != null) ? g('hm1_' + n) - g('hm0_' + n) : null;
-      let q = 0; fichePage.querySelectorAll(`[data-k^="ap${n}_"][data-k$="_qL"]`).forEach(e => q += fNum(e.value) || 0);
+      // V4.30 : Appoint GO = Appoint Go (CT) = CT AV - CT AP (ligne 2) ; si le CT n'est pas rempli, on garde la quantite litres groupe (ligne 1)
+      let q = 0; fichePage.querySelectorAll(`[data-k^="ap${n}_"][data-k$="_qL"]`).forEach(e => { const c = fNum((el(e.dataset.k.replace(/_qL$/, '_qC')) || {}).value); q += (c != null ? c : (fNum(e.value) || 0)); });
       const c = (g('niv0_' + n) != null && g('niv1_' + n) != null) ? g('niv0_' + n) + q - g('niv1_' + n) : null;      // Consom = Niveau J + Qté − Niveau J+1
       const s = (c != null && p > 0) ? c * CFG.densite / p : null;
-      put('p_' + n, fmt(p)); put('c_' + n, fmt(c)); put('h_' + n, fmt(h, 1)); put('s_' + n, fmt(s));
+      put('p_' + n, fmt(p)); put('c_' + n, fmt(c)); put('h_' + n, fmt(h, 0)); put('s_' + n, fmt(s, 2));
       if (p != null) { tp += p; aP = true; }
       if (c != null) { tc += c; aC = true; }
-      if (n < 3 && g('jir1_' + n) != null && g('jir0_' + n) != null) { tj += (g('jir1_' + n) - g('jir0_' + n)) * (n === 1 ? 8 : 1); aJ = true; } // JIRAMA: G1 ×8, G2 ×1, G3 tsy misy
+      // V4.30 : production JIRAMA = G1 (index JIRAMA x8) + G2 (index JIRAMA x1) + G3 (pas d'index JIRAMA : production HFF/EMCP du G3).
+      // Si l'index JIRAMA de G1/G2 manque, on prend l'EMCP (meme regle que le PPS/DPR).
+      let pjN = null;
+      if (n < 3 && g('jir1_' + n) != null && g('jir0_' + n) != null) pjN = (g('jir1_' + n) - g('jir0_' + n)) * (JCOEF[n - 1] ?? 1);
+      else pjN = p;
+      if (pjN != null) { tj += pjN; aJ = true; }
     });
     put('rh_prod', aP ? fmt(tp) : ''); put('rj_prod', aJ ? fmt(tj) : '');
-    put('rh_consom', aC ? fmt(tc) : ''); put('rh_csp', (aP && aC && tp > 0) ? fmt(tc * CFG.densite / tp) : ''); // JIRAMA: tsy misy consom/CSP
+    put('rh_consom', aC ? fmt(tc) : ''); put('rh_csp', (aP && aC && tp > 0) ? fmt(tc * CFG.densite / tp, 2) : '');   // CSP = 2 chiffres apres la virgule
   }
 
   async function loadFiche(reset) {
@@ -823,11 +848,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const body = document.getElementById('fp-body');
     body.innerHTML = buildFiche(Math.max(3, ...G.map(n => byG[n].length)), Math.max(2, D.trs.length));
     if (saved && saved.vals) Object.keys(saved.vals).forEach(k => { const e = el(k); if (e && !e.readOnly) e.value = saved.vals[k]; });
+    G.forEach(n => [0, 1].forEach(t => { const e = el('niv' + t + '_' + n); if (e && e.value !== '') e.value = nivNorm(e.value); }));   // anciennes valeurs en cm -> litres
     // RELEVÉ à 06 H J = RELEVÉ à 06 H J+1 de la fiche d'hier (même mesure) : mipetraka ho azy
     const prev = await db.fiches.where('date').equals(addDays(d, -1)).first();
     if (prev && prev.vals) G.forEach(n => ['hm', 'kwh', 'jir', 'niv'].forEach(f => {
       if (f === 'jir' && n === 3) return;
-      const v = prev.vals[f + '1_' + n]; if (v !== undefined && v !== '') put(f + '0_' + n, v);
+      const v = prev.vals[f + '1_' + n]; if (v !== undefined && v !== '') put(f + '0_' + n, f === 'niv' ? nivNorm(v) : v);
     }));
 
     // Appoint (avy amin'ny Appoint) : ligne 1 = litres groupe (après conversion), ligne 2 = CT
@@ -849,21 +875,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const firstOf = l => l.filter(isDay)[0] || l[0];
     const lastOf = l => { const nt = l.filter(t => !isDay(t)); return nt.length ? nt[nt.length - 1] : l[l.length - 1]; };
     [1, 2, 3].forEach(c => { const l = D.trs.filter(t => String(t.citerne).slice(-1) === String(c)); if (l.length) { pre('pg' + c + '_av', firstOf(l).pigeAv); pre('pg' + c + '_ap', lastOf(l).pigeAp); } });
+    // V4.31 : CUVE T (CT) a 06h J = CT AV du 1er mouvement de la journee (appoint OU transfert) ; a 06h J+1 = CT AP du dernier mouvement
+    {
+      const tm = h => (h && /^\d{1,2}:\d{2}/.test(h)) ? ((+h.slice(0, 2)) * 60 + (+h.slice(3, 5)) - 360 + 1440) % 1440 : 99999;
+      const ev = [...D.aps.map((a, i) => ({ t: tm(a.heureAv || a.heureAp), o: i, av: fNum(a.avCt), ap: fNum(a.apCt) })), ...D.trs.map((t, i) => ({ t: tm(t.heure), o: 1000 + i, av: fNum(t.avCt), ap: fNum(t.apCt) }))].sort((x, y) => x.t - y.t || x.o - y.o);
+      const f0 = ev.find(x => x.av != null), l0 = ev.slice().reverse().find(x => x.ap != null);
+      if (f0) put('pgT_av', fmt(f0.av, 0)); if (l0) put('pgT_ap', fmt(l0.ap, 0));
+    }
     if (D.trs.length) {
-      pre('pgT_av', firstOf(D.trs).avCt); pre('pgT_ap', lastOf(D.trs).apCt);
       const lt = D.trs[D.trs.length - 1];                       // COMPTEUR = « Total ou E du compteur » du dernier transfert
       pre('pgC', (lt.compteurTotal !== undefined && lt.compteurTotal !== '') ? lt.compteurTotal : lt.compteurValeur);
     }
     // Relevé 06h J / J+1
-    G.forEach(n => [0, 1].forEach(t => { const r = D.rel[n][t]; if (r) { pre('hm' + t + '_' + n, r.heureMarche); pre('kwh' + t + '_' + n, r.energie); } const v = D.niv[n][t]; if (v != null) pre('niv' + t + '_' + n, fmt(v, 2)); }));
+    G.forEach(n => [0, 1].forEach(t => { const r = D.rel[n][t]; if (r) { pre('hm' + t + '_' + n, r.heureMarche); pre('kwh' + t + '_' + n, r.energie); } const v = D.niv[n][t]; if (v != null) { const cur = fNum((el('niv' + t + '_' + n) || {}).value), cm = D.nivCm[n][t]; if (cur == null || (cm != null && cur === cm)) put('niv' + t + '_' + n, fmt(v, 2)); } }));   // NIVEAU GO = toujours en LITRES (remplace une ancienne valeur en cm)
     // Entretien + Travaux
     const EN = { hl: 'Filtre à huile', air: 'Filtre à air', go: 'Filtre à gasoil', sep: 'Filtre séparateur' };
-    D.tws.forEach(t => { const n = +String(t.groupe).slice(1); Object.keys(EN).forEach(x => { if (t.type === EN[x]) pre(`en_${x}_${n}`, t.hm || 'OK'); }); });
+    const pf = await db.fiches.where('date').equals(addDays(d, -1)).first(), pv = (pf && pf.vals) || {};
+    G.forEach(n => Object.keys(EN).forEach(x => { const k = `en_${x}_${n}`, reset = D.tws.some(t => t.type === EN[x] && +String(t.groupe).slice(1) === n), p0 = fNum(pv[k]), hj = Math.round((fNum((el('hm1_' + n) || {}).value) ?? 0) - (fNum((el('hm0_' + n) || {}).value) ?? 0)); if (reset) put(k, '0'); else if (p0 != null) pre(k, String(p0 + hj)); }));
     pre('trav', D.tws.map(t => `${t.groupe} : ${t.type}${t.hm ? ' (HM ' + t.hm + ')' : ''}${t.qte ? ' – ' + t.qte : ''}`).join('\n'));
     // AQ avy amin'ny Calendrier
     const dt = new Date(d + 'T00:00:00'), rv = resolveLeave(dt, getSched(dt));
-    pre('aq_m', rv.jour.name); pre('aq_n', rv.nuit.name);
-    compute();
+    pre('aq_m', rv.jour.name); if (rv.midi) pre('aq_d', rv.midi.name); pre('aq_n', rv.nuit.name);
+    compute(); entColor();
+  }
+
+  const ENT_TH = { hl: [350, 350, 350], air: [500, 500, 250], go: [250, 250, 250], sep: [250, 250, 250] };
+  function entColor() {
+    if (!fichePage) return;
+    Object.keys(ENT_TH).forEach(x => G.forEach(n => { const e = el(`en_${x}_${n}`); if (!e) return; const v = fNum(e.value), red = v != null && v >= ENT_TH[x][n - 1]; e.style.setProperty('color', red ? '#E5484D' : '', red ? 'important' : ''); e.style.fontWeight = red ? '800' : ''; e.style.webkitPrintColorAdjust = 'exact'; e.style.printColorAdjust = 'exact'; }));
   }
 
   function fitFiche() {
@@ -888,7 +927,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fichePage.innerHTML = `<div class="fp-bar">
       <button data-act="reset">${ICO('refresh',14)} Actualiser</button><button class="y" id="btn-save-fiche">Enregistrer</button><button id="btn-print-fiche">Imprimer</button></div>
       <div class="fp-scroll" id="fp-scroll"><div class="fp-paper" id="fp-paper"><div id="fp-body"></div></div></div>`;
-    fichePage.addEventListener('input', e => { if (e.target.dataset && e.target.dataset.k) compute(); });
+    fichePage.addEventListener('input', e => { if (e.target.dataset && e.target.dataset.k) { compute(); entColor(); } });
     fichePage.addEventListener('change', e => { if (e.target.id === 'f-date' && e.target.value) { curDate = e.target.value; loadFiche(); } });
     fichePage.addEventListener('click', async e => {
       const b = e.target.closest('button'); if (!b) return;
@@ -941,9 +980,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div><b>Intensité:</b> ${currentEditData.intensite||'-'}</div><div><b>Cos:</b> ${currentEditData.cos||'-'}</div>
             <div><b>RPM:</b> ${currentEditData.rpm||'-'}</div><div><b>Fréquence:</b> ${currentEditData.frequence||'-'}</div>
             <div><b>T° Eau:</b> ${currentEditData.tempEau||'-'}</div><div><b>T° Huile:</b> ${currentEditData.tempHuile||'-'}</div>
-            <div><b>Transfo:</b> ${currentEditData.transfo||'-'}</div><div><b>P. Huile:</b> ${currentEditData.pressHuile||'-'}</div>
-            <div><b>P. Gasoil:</b> ${currentEditData.pressGasoil||'-'}</div><div><b>Énergie:</b> ${currentEditData.energie||'-'}</div>
-            <div><b>Gasoil:</b> ${currentEditData.gasoilLitres||'-'}</div><div><b>H. Marche:</b> ${currentEditData.heureMarche||'-'}</div>
+            <div><b>Air ADM (°C):</b> ${(currentEditData.airAdm !== undefined && currentEditData.airAdm !== null && currentEditData.airAdm !== '') ? currentEditData.airAdm : '-'}</div><div><b>Transfo:</b> ${currentEditData.transfo||'-'}</div>
+            <div><b>P. Huile:</b> ${currentEditData.pressHuile||'-'}</div><div><b>P. Gasoil:</b> ${currentEditData.pressGasoil||'-'}</div>
+            <div><b>Énergie:</b> ${currentEditData.energie||'-'}</div><div><b>Gasoil:</b> ${currentEditData.gasoilLitres||'-'}</div>
+            <div><b>H. Marche:</b> ${currentEditData.heureMarche||'-'}</div>
           </div>
         `;
       } else if (table === 'travaux') {
@@ -1035,7 +1075,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Colonnes de chaque tableau (1re colonne = date)
   const HIST = {
     'relevés': { label: 'Relevés', ico: ICO('list',22),
-      cols: [['Date', r => r.date], ['Heure', r => r.heure], ['Grp', r => r.groupe], ['Puiss. (MW)', r => r.puissance], ['Tension', r => r.tension], ['Intens.', r => r.intensite], ['Cos φ', r => r.cos], ['RPM', r => r.rpm], ['Fréq.', r => r.frequence], ['T° Eau', r => r.tempEau], ['T° Huile', r => r.tempHuile], ['Transfo', r => r.transfo], ['P. Huile', r => r.pressHuile], ['P. Gasoil', r => r.pressGasoil], ['Air ADM (°C)', r => r.airAdm], ['Énergie', r => r.energie], ['Gasoil', r => r.gasoilLitres], ['H. Marche', r => r.heureMarche]],
+      cols: [['Date', r => r.date], ['Heure', r => r.heure], ['Grp', r => r.groupe], ['Puiss. (MW)', r => r.puissance], ['Tension', r => r.tension], ['Intens.', r => r.intensite], ['Cos φ', r => r.cos], ['RPM', r => r.rpm], ['Fréq.', r => r.frequence], ['T° Eau', r => r.tempEau], ['T° Huile', r => r.tempHuile], ['Air ADM (°C)', r => r.airAdm], ['Transfo', r => r.transfo], ['P. Huile', r => r.pressHuile], ['P. Gasoil', r => r.pressGasoil], ['Énergie', r => r.energie], ['Gasoil', r => r.gasoilLitres], ['H. Marche', r => r.heureMarche]],
       det: r => ['Relevé ' + r.groupe, r.date + ' à ' + r.heure] },
     appoints: { label: 'Appoints', ico: ICO('fuel',22),
       cols: [['Date', a => a.date], ['Grp', a => a.groupe], ['État', a => a.etat], ['Heure AV', a => a.heureAv], ['Heure AP', a => a.heureAp], ['Durée', a => a.duree], ['Niv. AV (cm)', a => a.avMm], ['Niv. AP (cm)', a => a.apMm], ['Qté', a => a.qteMm], ['CT AV', a => a.avCt], ['CT AP', a => a.apCt], ['Obs.', a => a.obs]],
@@ -1079,11 +1119,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function tvRender() {
     const terms = normT(TV.q).split(/\s+/).filter(Boolean);
-    let rows = terms.length ? TV.all.filter(x => terms.every(t => x.text.includes(t))) : TV.all.slice();
-    const fg = tvEl('tvFGrp') ? tvEl('tvFGrp').value : '', fd = tvEl('tvFDate') ? tvEl('tvFDate').value : '', fh = tvEl('tvFHeure') ? tvEl('tvFHeure').value : '';
-    if (fg) rows = rows.filter(x => (x.r.groupe || '') === fg);
-    if (fd) rows = rows.filter(x => (x.r.date || '') === fd);
-    if (fh) rows = rows.filter(x => String(x.r.heure || x.r.heureAv || '').slice(0, 2) === fh.slice(0, 2));
+    const base = terms.length ? TV.all.filter(x => terms.every(t => x.text.includes(t))) : TV.all.slice();
+    // Filtres dynamiques : chaque liste ne propose que les valeurs existantes compte tenu de la recherche et des AUTRES filtres.
+    const FAC = [
+      ['tvFGrp', x => x.r.groupe || '', 'Tous les groupes', v => v, (a, b) => String(a).localeCompare(String(b), 'fr', { numeric: true })],
+      ['tvFDate', x => x.r.date || '', 'Toutes les dates', v => v.split('-').reverse().join('/'), (a, b) => String(b).localeCompare(String(a))],
+      ['tvFHeure', x => String(x.r.heure || x.r.heureAv || '').slice(0, 2), 'Toutes les heures', v => v + ' h', (a, b) => String(a).localeCompare(String(b))]
+    ];
+    const cur = {}; FAC.forEach(f => cur[f[0]] = tvEl(f[0]) ? tvEl(f[0]).value : '');
+    const pass = (x, skip) => FAC.every(f => f[0] === skip || !cur[f[0]] || f[1](x) === cur[f[0]]);
+    FAC.forEach(f => {
+      const el = tvEl(f[0]); if (!el) return;
+      const cnt = {}; base.forEach(x => { if (pass(x, f[0])) { const v = f[1](x); if (v) cnt[v] = (cnt[v] || 0) + 1; } });
+      const vals = Object.keys(cnt).sort(f[4]);
+      if (cur[f[0]] && !cnt[cur[f[0]]]) cur[f[0]] = '';   // valeur devenue impossible : filtre retire automatiquement
+      const sig = f[0] + '|' + cur[f[0]] + '|' + vals.map(v => v + ':' + cnt[v]).join(',');
+      if (el._sig !== sig) {
+        el.innerHTML = `<option value="">${f[2]}</option>` + vals.map(v => `<option value="${escH(v)}">${escH(f[3](v))} (${cnt[v]})</option>`).join('');
+        el._sig = sig;
+      }
+      el.value = cur[f[0]];
+      if (el.parentElement) el.parentElement.classList.toggle('hidden', !vals.length && !cur[f[0]]);   // champ inutile pour cette rubrique (ex. pas de groupe)
+    });
+    const fg = cur.tvFGrp, fd = cur.tvFDate, fh = cur.tvFHeure;
+    let rows = base.filter(x => pass(x, null));
     if (TV.sc >= 0) {
       const c = TV.sc, num = v => { const n = Number(String(v).replace(',', '.')); return (v === '' || isNaN(n)) ? null : n; };
       rows.sort((a, b) => {
@@ -1102,6 +1161,7 @@ document.addEventListener('DOMContentLoaded', () => {
       : `<tr><td colspan="${TV.cols.length}" class="tv-empty">Aucun résultat.</td></tr>`;
     tvEl('tvCount').textContent = rows.length + ' résultat' + (rows.length > 1 ? 's' : '') + (rows.length > TV.shown.length ? ' · ' + TV.shown.length + ' affichés' : '');
     tvEl('tvMore').classList.toggle('hidden', rows.length <= TV.shown.length);
+    if (tvEl('tvFInfo')) tvEl('tvFInfo').textContent = rows.length + ' résultat' + (rows.length > 1 ? 's' : '');
   }
 
   function closeTV() { tvEl('tvOverlay').classList.remove('open'); document.body.style.overflow = ''; }
@@ -1127,8 +1187,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (tvEl('tvOverlay')) {
     tvEl('tvBack').addEventListener('click', closeTV);
     tvEl('tvSearch').addEventListener('input', e => { TV.q = e.target.value; TV.limit = 500; tvRender(); });
-    ['tvFGrp', 'tvFDate', 'tvFHeure'].forEach(id => tvEl(id).addEventListener('input', () => { TV.limit = 500; tvRender(); }));
-    tvEl('tvFReset').addEventListener('click', () => { ['tvFGrp', 'tvFDate', 'tvFHeure'].forEach(id => tvEl(id).value = ''); tvRender(); });
+    ['tvFGrp', 'tvFDate', 'tvFHeure'].forEach(id => tvEl(id).addEventListener('change', () => { TV.limit = 500; tvRender(); }));
+    tvEl('tvFReset').addEventListener('click', () => { ['tvFGrp', 'tvFDate', 'tvFHeure'].forEach(id => tvEl(id).value = ''); TV.limit = 500; tvRender(); });
+    const tvClosePanel = () => { tvEl('tvFilterPanel').classList.add('hidden'); tvEl('tvFilterBtn').setAttribute('aria-expanded', 'false'); };
+    tvEl('tvFDone').addEventListener('click', tvClosePanel);
+    document.addEventListener('pointerdown', e => {   // clic en dehors : ferme la liste des filtres (le tableau ne bouge jamais)
+      const pn = tvEl('tvFilterPanel'); if (pn.classList.contains('hidden')) return;
+      if (e.target.closest('#tvFilterPanel') || e.target.closest('#tvFilterBtn')) return;
+      tvClosePanel();
+    });
     tvEl('tvFilterBtn').addEventListener('click', () => {
       const open = tvEl('tvFilterPanel').classList.toggle('hidden') === false;
       tvEl('tvFilterBtn').setAttribute('aria-expanded', String(open));
@@ -1151,7 +1218,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
       if (document.getElementById('detailsModal').classList.contains('open')) return;
-      if (tvEl('tvOverlay').classList.contains('open')) closeTV();
+      if (tvEl('tvOverlay').classList.contains('open')) { if (!tvEl('tvFilterPanel').classList.contains('hidden')) { tvEl('tvFilterPanel').classList.add('hidden'); tvEl('tvFilterBtn').setAttribute('aria-expanded', 'false'); } else closeTV(); }
       else { sideMenu.classList.remove('open'); sideMenuOverlay.classList.remove('open'); }
     });
   }
@@ -1186,6 +1253,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let CFG = { themeMode: localStorage.getItem('theme') === 'dark' ? 'dark' : 'light', fontSize: 15, ficheZoom: 3, densite: 830, alerts: {}, pinHash: '', autoLock: 0, seuilGo: '', capCuve: '', groupes: { G1: true, G2: true, G3: true }, rappel: false, ...JSON.parse(localStorage.getItem('cat_cfg') || '{}') };
   const saveCfg = () => localStorage.setItem('cat_cfg', JSON.stringify(CFG));
   window.CATcfg = () => CFG;
+  window.CATdb = db;
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
   function applyCfg() {
     document.body.style.fontSize = CFG.fontSize + 'px';
@@ -1240,17 +1308,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let sm = document.getElementById('settingsModal');
   if (!sm) { sm = document.createElement('div'); sm.id = 'settingsModal'; sm.className = 'modal-overlay'; document.body.appendChild(sm); }
 
-  let stTab = 'menu';
+  let stTab = 'menu', stSyncMsg = '';
   async function renderSettings() {
     const tbls = [['relevés', 'Relevés horaires'], ['appoints', 'Appoints'], ['transferts', 'Transferts'], ['travaux', 'Travaux'], ['operations', 'Opérations'], ['fiches', 'Fiches d\'exploitation']];
     const cnt = {}; for (const [t] of tbls) cnt[t] = await db[t].count();
+    let SI = null; if (stTab === 'sync' && window.CATsync) { try { SI = await window.CATsync.info(); } catch (e) {} }
     const seg = (id, opts, cur) => `<div class="st-seg" data-seg="${id}">${opts.map(([v, l]) => `<button type="button" data-v="${v}" class="${String(cur) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
-    const TABS = [['apparence', 'palette', 'Apparence'], ['securite', 'shield', 'Sécurité'], ['technique', 'tool', 'Technique'], ['calculs', 'calc', 'Calculs'], ['alertes', 'bell', 'Alertes'], ['sauvegarde', 'save', 'Sauvegarde'], ['donnees', 'folder', 'Données'], ['apropos', 'info', 'À propos']];   // 'apropos' ouvre la fenêtre À propos
+    const TABS = [['profil', 'users', 'Profil'], ['apparence', 'palette', 'Apparence'], ['securite', 'shield', 'Sécurité'], ['technique', 'tool', 'Technique'], ['calculs', 'calc', 'Calculs'], ['notifications', 'bell', 'Notifications'], ['sync', 'refresh', 'Synchronisation'], ['alertes', 'alert', 'Alertes'], ['sauvegarde', 'save', 'Sauvegarde'], ['donnees', 'folder', 'Données'], ['apropos', 'info', 'À propos']];   // 'apropos' ouvre la fenêtre À propos
     const P = {
       apparence: `<h2>Apparence</h2><p class="st-sub">Thème, taille du texte et couleur de l'application.</p>
         <div class="st-box">
           <div class="st-row"><span>Thème</span>${seg('theme', [['light', 'Clair'], ['dark', 'Sombre'], ['auto', 'Auto']], CFG.themeMode)}</div>
           <div class="st-row"><span>Taille du texte</span>${seg('font', [[14, 'Petit'], [15, 'Normal'], [17, 'Grand']], CFG.fontSize)}</div>
+          <div class="st-row"><span>Langue<small>Langue de l'interface (les rapports restent en français)</small></span>${seg('lang', [['fr', 'FR'], ['mg', 'MG'], ['en', 'EN']], (window.CATi18n && window.CATi18n.get()) || 'fr')}</div>
           <div class="st-row"><span>Zoom maximum de la fiche<small>Pincement à 2 doigts · <b id="st-fz-v">${CFG.ficheZoom || 3}x</b></small></span><input type="range" id="st-fz" min="1" max="5" step="0.5" value="${CFG.ficheZoom || 3}" style="width:140px"></div>
           <div class="st-row"><span>Couleur d'accent <button type="button" class="st-btn" data-accent="#2F5BD3" style="padding:4px 8px;font-size:12px">Réinitialiser</button></span><div class="color-picker-grid" style="margin:0">${['#2F5BD3', '#F97316', '#22C55E', '#3B82F6', '#A855F7', '#EF4444'].map(c => `<button type="button" class="color-btn" data-accent="${c}" style="background:${c}"></button>`).join('')}</div></div>
         </div>`,
@@ -1269,6 +1339,63 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`,
       calculs: `<h2>Calculs</h2><p class="st-sub">Valeurs utilisées dans la Fiche d'exploitation.</p>
         <div class="st-box"><div class="st-row"><span>Densité du gasoil (g/L)<small>Ampiasaina amin'ny CSP ao amin'ny Fiche</small></span><input type="number" id="st-dens" class="st-in" value="${CFG.densite}"></div></div>`,
+      sync: (() => {
+        if (!SI) return `<h2>Synchronisation</h2><p class="st-sub">Module indisponible. Mettez l'application à jour (Sauvegarde &gt; Mettre à jour).</p>`;
+        const fmt = ts => ts ? new Date(ts).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'jamais';
+        const stTxt = !SI.logged ? 'Non connecté' : SI.busy ? 'Synchronisation en cours…' : !SI.online ? 'Hors ligne' : SI.err ? 'Erreur' : 'Synchronisé';
+        const cls = !SI.online || SI.err ? 'color:var(--danger)' : '';
+        return `<h2>Synchronisation</h2><p class="st-sub">Fampifandraisana amin'ny serveur. Mihazona ny angona rehetra ao amin'ity appareil ity ianao na tsy misy internet.</p>
+        <div class="st-box">
+          <div class="st-row"><span>Connexion<small>État du réseau de l'appareil</small></span><b style="${cls}">${SI.online ? 'En ligne' : 'Hors ligne'}</b></div>
+          <div class="st-row"><span>État<small>Synchronisation automatique toutes les 30 secondes</small></span><b style="${cls}">${stTxt}</b></div>
+          <div class="st-row"><span>Dernière synchronisation</span><b>${fmt(SI.last)}</b></div>
+          <div class="st-row"><span>En attente d'envoi<small>Modifications faites sur cet appareil</small></span><b>${SI.pending}</b></div>
+          ${SI.err ? `<p class="st-hint" style="color:var(--danger)">Dernière erreur : ${escH(SI.err)}</p>` : ''}
+          ${stSyncMsg ? `<p class="st-hint">${escH(stSyncMsg)}</p>` : ''}
+          <div class="st-actions"><button type="button" class="st-btn" id="st-sync" ${SI.busy || !SI.logged ? 'disabled' : ''}>${ICO('refresh', 16)} Synchroniser maintenant</button></div>
+        </div>`;
+      })(),
+      notifications: (() => {
+        const N = window.CATnotif;
+        if (!N) return `<h2>Notifications</h2><p class="st-sub">Module indisponible. Mettez l'application à jour (Sauvegarde &gt; Mettre à jour).</p>`;
+        const n = N.get(), sys = N.sysState(), isCh = document.body.dataset.role === 'chef', yn = [[1, 'Oui'], [0, 'Non']], b = v => v ? 1 : 0;
+        const tn = { son1: 'Son 1', ding: 'Ding', double: 'Double', cloche: 'Cloche', alarme: 'Alarme', sirene: 'Sirène' };
+        const tseg = (id, list, cur) => seg(id, list.map(k => [k, tn[k]]), cur);
+        const test = k => `<button type="button" class="st-btn" data-nttest="${k}" style="padding:7px 12px;font-size:12px">Tester</button>`;
+        const hist = N.history();
+        const fmt = ts => new Date(ts).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        const sysTxt = sys === 'unsupported' ? 'Non pris en charge par ce navigateur' : sys === 'denied' ? 'Bloquées : autorisez-les dans les réglages du site / du navigateur' : (sys === 'granted' && n.system) ? 'Activées sur cet appareil' : 'Désactivées';
+        return `<h2>Notifications &amp; sonnerie</h2><p class="st-sub">Fanairana sy feon'ny hafatra, alertes ary consignes. Voatahiry ao amin'ity appareil ity ihany ny safidy.</p>
+        <div class="st-box">
+          <div class="st-row"><span>Notifications<small>Interrupteur général</small></span>${seg('nt-on', yn, b(n.on))}</div>
+          <div class="st-row"><span>Sonnerie</span>${seg('nt-sound', yn, b(n.sound))}</div>
+          <div class="st-row"><span>Volume</span>${seg('nt-vol', [[1, 'Bas'], [2, 'Moyen'], [3, 'Fort']], n.volume)}</div>
+          <div class="st-row"><span>Vibration<small>Téléphone uniquement</small></span>${seg('nt-vib', yn, b(n.vibrate))}</div>
+        </div>
+        <div class="st-box">
+          <div class="st-row"><span>Messagerie<small>Nouveau message reçu</small></span>${seg('nt-mail', yn, b(n.mail))}</div>
+          ${isCh ? `<div class="st-row"><span>Alertes<small>Valeurs hors limites et déclenchements des agents</small></span>${seg('nt-alert', yn, b(n.alert))}</div>` : ''}
+          <div class="st-row"><span>Consignes<small>Consigne prioritaire publiée par le Chef</small></span>${seg('nt-consigne', yn, b(n.consigne))}</div>
+        </div>
+        <div class="st-box">
+          <div class="st-row"><span>Son messagerie</span><div class="st-actions" style="margin:0">${tseg('nt-tmail', ['son1', 'ding', 'double', 'cloche'], n.toneMail)}${test('mail')}</div></div>
+          ${isCh ? `<div class="st-row"><span>Son alerte</span><div class="st-actions" style="margin:0">${tseg('nt-talert', ['son1', 'alarme', 'sirene', 'double'], n.toneAlert)}${test('alert')}</div></div>` : ''}
+          <div class="st-row"><span>Son consigne</span><div class="st-actions" style="margin:0">${tseg('nt-tcons', ['son1', 'double', 'cloche', 'ding'], n.toneConsigne)}${test('consigne')}</div></div>
+        </div>
+        <div class="st-box">
+          <div class="st-row"><span>Mode silencieux<small>Pas de son ni de vibration pendant cette plage. Les alertes sonnent toujours.</small></span>${seg('nt-quiet', yn, b(n.quiet))}</div>
+          ${n.quiet ? `<div class="st-row"><span>De</span><input type="time" id="nt-qf" class="st-in" value="${n.qFrom}"></div><div class="st-row"><span>À</span><input type="time" id="nt-qt" class="st-in" value="${n.qTo}"></div>` : ''}
+        </div>
+        <div class="st-box">
+          <div class="st-row"><span>Notifications du système<small>${sysTxt} · affichées quand l'application est en arrière-plan</small></span>
+            ${sys === 'unsupported' ? '' : (sys === 'granted' && n.system) ? '<button type="button" class="st-btn danger" id="nt-sys-off">Désactiver</button>' : '<button type="button" class="st-btn" id="nt-sys">Activer</button>'}</div>
+          <p class="st-hint">Sans serveur push, ces notifications arrivent seulement si l'application est ouverte ou encore active en mémoire du téléphone.</p>
+        </div>
+        <div class="st-box">
+          <div class="st-row"><span>Historique<small>${hist.length} notification(s) récente(s)</small></span>${hist.length ? '<button type="button" class="st-btn danger" id="nt-hclear">Effacer</button>' : ''}</div>
+          ${hist.map(h => `<div class="st-row" style="align-items:flex-start"><span><b>${escH(h.title)}</b><small>${fmt(h.ts)}</small>${escH(h.body)}</span></div>`).join('')}
+        </div>`;
+      })(),
       alertes: `<h2>Alertes des relevés</h2><p class="st-sub">Fanairana rehefa mihoatra ny sisintany ny relevé. Avelao foana ny tsy ilaina.</p>
         <div class="st-box st-grid2">${ALERT_DEFS.map(([k, l]) => { const a = CFG.alerts[k] || {}; return `<div class="st-row"><span>${l}</span><div class="st-mm"><input type="number" step="any" placeholder="Min" data-al="${k}" data-b="min" value="${a.min ?? ''}"><input type="number" step="any" placeholder="Max" data-al="${k}" data-b="max" value="${a.max ?? ''}"></div></div>`; }).join('')}</div>`,
       sauvegarde: `<h2>Sauvegarde &amp; restauration</h2><p class="st-sub">Voatahiry ao amin'ity appareil ity ihany ny angona. Manaova sauvegarde tsy tapaka, indrindra rehefa hifindra finday na ordinateur.</p>
@@ -1286,7 +1413,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuBody = `<div class="cd-hero"><div class="hc-top"><div class="hc-ic">${ICO('gear', 22)}</div><div class="hc-t"><b>Paramètres</b><span>CAT by Manda · Mahanoro</span></div></div>
         <div class="hc-lab">Dernière sauvegarde</div><div class="hc-val"><b style="font-size:15px">${lastB}</b></div>
         <button type="button" class="hc-go" data-tab="sauvegarde" aria-label="Sauvegarde">${ICO('next', 20)}</button></div>
-      <div class="cd-nav">${TABS.map(([id, ic, l]) => `<button type="button" class="cd-nt" ${id === 'apropos' ? 'data-about="1"' : `data-tab="${id}"`}>${ICO(ic, 40)}<span>${l}</span></button>`).join('')}</div>`;
+      <div class="cd-nav">${TABS.map(([id, ic, l]) => `<button type="button" class="cd-nt" ${id === 'apropos' ? 'data-about="1"' : id === 'profil' ? 'data-profile="1"' : `data-tab="${id}"`}>${ICO(ic, 40)}<span>${l}</span></button>`).join('')}</div>`;
     sm.innerHTML = `<div class="modal st-modal bred-modal ${isMenu ? 'hero' : ''}"><div class="modal-head">
         ${isMenu ? `<button class="modal-close" type="button" aria-label="Fermer">${ARROW}</button>` : `<button class="bm-circle" type="button" data-tab="menu" aria-label="Retour">${ARROW}</button>`}
         <h3>${isMenu ? 'Paramètres' : cur[2]}</h3><span class="bm-circle bm-ghost" aria-hidden="true"></span></div>
@@ -1297,9 +1424,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const t = e.target;
     if (t.closest('.modal-close')) { sm.classList.remove('open'); return; }
     if (t.closest('[data-about]')) { window.openAboutModal(); return; }
+    if (t.closest('[data-profile]')) { sm.classList.remove('open'); if (window.openProfile) window.openProfile(); return; }
     const tb = t.closest('[data-tab]'); if (tb) { stTab = tb.dataset.tab; renderSettings(); return; }
+    if (t.closest('#st-sync')) {
+      stSyncMsg = 'Synchronisation en cours…'; renderSettings();
+      const r = await window.CATsync.now();
+      stSyncMsg = r.ok ? 'Synchronisation terminée.' : r.reason === 'offline' ? 'Pas de réseau : la synchronisation reprendra automatiquement au retour d\'internet.' : r.reason === 'login' ? 'Connectez-vous d\'abord.' : 'La synchronisation a échoué. Un nouvel essai aura lieu automatiquement.';
+      renderSettings(); return;
+    }
+    const N = window.CATnotif;
+    if (N) {
+      const nb = t.closest('[data-nttest]'); if (nb) { N.test(nb.dataset.nttest); return; }
+      if (t.closest('#nt-sys')) { const r = await N.sysAsk(); if (r === 'denied') alert('Notifications bloquées : autorisez-les dans les réglages du site ou du navigateur, puis réessayez.'); else if (r === 'granted') N.test('mail'); renderSettings(); return; }
+      if (t.closest('#nt-sys-off')) { N.set({ system: false }); renderSettings(); return; }
+      if (t.closest('#nt-hclear')) { N.clearHistory(); renderSettings(); return; }
+      const ns = t.closest('[data-seg] button');
+      if (ns && String(ns.parentElement.dataset.seg).startsWith('nt-')) {
+        const id = ns.parentElement.dataset.seg, v = ns.dataset.v;
+        const BOOL = { 'nt-on': 'on', 'nt-sound': 'sound', 'nt-vib': 'vibrate', 'nt-mail': 'mail', 'nt-alert': 'alert', 'nt-consigne': 'consigne', 'nt-quiet': 'quiet' };
+        const TONE = { 'nt-tmail': ['toneMail', 'mail'], 'nt-talert': ['toneAlert', 'alert'], 'nt-tcons': ['toneConsigne', 'consigne'] };
+        if (BOOL[id]) N.set({ [BOOL[id]]: v === '1' });
+        else if (id === 'nt-vol') { N.set({ volume: +v }); N.play(N.get().toneMail); }
+        else if (TONE[id]) { N.set({ [TONE[id][0]]: v }); N.play(v); }
+        renderSettings(); return;
+      }
+    }
     const sg = t.closest('[data-seg] button');
-    if (sg) { const id = sg.parentElement.dataset.seg; if (id === 'theme') CFG.themeMode = sg.dataset.v; else if (id === 'autolock') CFG.autoLock = +sg.dataset.v; else if (id === 'rappel') CFG.rappel = sg.dataset.v === '1'; else CFG.fontSize = +sg.dataset.v; saveCfg(); applyCfg(); renderSettings(); return; }
+    if (sg) { const id = sg.parentElement.dataset.seg; if (id === 'lang') { if (window.CATi18n) window.CATi18n.set(sg.dataset.v); renderSettings(); return; } if (id === 'theme') CFG.themeMode = sg.dataset.v; else if (id === 'autolock') CFG.autoLock = +sg.dataset.v; else if (id === 'rappel') CFG.rappel = sg.dataset.v === '1'; else CFG.fontSize = +sg.dataset.v; saveCfg(); applyCfg(); renderSettings(); return; }
     const ac = t.closest('[data-accent]'); if (ac) { window.setAccent(ac.dataset.accent); return; }
     const sg2 = t.closest('[data-grp]');
     if (sg2) { const g = sg2.dataset.grp; CFG.groupes = CFG.groupes || {}; const on = CFG.groupes[g] !== false; if (on && Object.values({ G1: 1, G2: 1, G3: 1 }).length && ['G1', 'G2', 'G3'].filter(x => CFG.groupes[x] !== false).length <= 1) { alert('Au moins un groupe doit rester actif.'); return; } CFG.groupes[g] = !on; saveCfg(); applyGroupes(); renderSettings(); return; }
@@ -1340,6 +1491,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   sm.addEventListener('input', (e) => {
     const t = e.target;
+    if (window.CATnotif && (t.id === 'nt-qf' || t.id === 'nt-qt') && t.value) window.CATnotif.set(t.id === 'nt-qf' ? { qFrom: t.value } : { qTo: t.value });
     if (t.id === 'st-fz') { CFG.ficheZoom = +t.value; saveCfg(); const v = document.getElementById('st-fz-v'); if (v) v.textContent = t.value + 'x'; }
     if (t.id === 'st-seuil') { CFG.seuilGo = t.value; saveCfg(); }
     if (t.id === 'st-cap') { CFG.capCuve = t.value; saveCfg(); }
@@ -1348,8 +1500,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   sm.addEventListener('change', async (e) => { if (e.target.id === 'st-imp') { const f = e.target.files[0]; if (f && await askPin('Code PIN pour importer :')) window.importBackup(f); else e.target.value = ''; } });
 
-  window.openSettingsModal = async function () {
-    stTab = 'menu'; await renderSettings(); sm.classList.add('open');
+  ['cat-sync-state', 'online', 'offline'].forEach(ev => window.addEventListener(ev, () => { if (sm.classList.contains('open') && stTab === 'sync') renderSettings(); }));
+  window.openSettingsModal = async function (tab) {
+    stTab = (typeof tab === 'string' && tab) ? tab : 'menu'; await renderSettings(); sm.classList.add('open');
     sideMenu.classList.remove('open'); sideMenuOverlay.classList.remove('open');
   };
 
@@ -1446,8 +1599,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const lines = [], sig = [];
     for (let k = 0; k < 14; k++) {
       const d = new Date(); d.setDate(d.getDate() + k); const sc = getSched(d), iso = localDateStr(d);
-      sc.slots.forEach(x => { if (mine(x.agent) || document.body.dataset.role === 'chef') sig.push(iso + x.poste.nom + x.agent); });
-      if (k < 2) sc.slots.forEach(x => { if (mine(x.agent)) lines.push((k ? 'Demain' : "Aujourd'hui") + ' : <b>' + escH(x.poste.nom) + '</b> ' + x.poste.debut + '–' + x.poste.fin); });
+      sc.slots.forEach(x => { if (mine(x.agent) || (x.membres || []).some(mine) || document.body.dataset.role === 'chef') sig.push(iso + x.poste.nom + x.agent); });
+      if (k < 2) sc.slots.forEach(x => { if (mine(x.agent) || (x.membres || []).some(mine)) lines.push((k ? 'Demain' : "Aujourd'hui") + ' : <b>' + escH(x.poste.nom) + '</b> ' + x.poste.debut + '–' + x.poste.fin); });
     }
     const h = sig.join('|'), old = localStorage.getItem('catSchedSig'); let chg = '';
     if (old !== null && old !== h) chg = '<div style="background:#FFCC11;color:#000;padding:8px 10px;border-radius:8px;margin-bottom:8px;font-weight:700">Le planning a été modifié par le Chef.</div>';
@@ -1473,6 +1626,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', e => { if (e.target.closest('button')) setTimeout(saveDraft, 600); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) saveDraft(); });
   window.addEventListener('pagehide', saveDraft);
-  const lastPage = localStorage.getItem('catPage');
-  if (lastPage && lastPage !== 'page-chef' && document.getElementById(lastPage)) showPage(lastPage); else markNav('page-releve');
+  // Rechargement (actualiser) : on revient sur la meme page, au meme endroit.
+  // 1re tentative au demarrage ; 2e a « cat-ready » (apres connexion : role connu, pages ajoutees par operations.js presentes).
+  const saveScroll = () => { try { sessionStorage.setItem('catScroll', JSON.stringify({ p: localStorage.getItem('catPage'), y: window.scrollY })); } catch (e) {} };
+  window.addEventListener('pagehide', saveScroll); window.addEventListener('beforeunload', saveScroll);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) saveScroll(); });
+  const restorePage = () => {
+    const lp = localStorage.getItem('catPage');
+    if (!lp || !document.getElementById(lp)) return false;
+    if (lp === 'page-chef' && document.body.dataset.role !== 'chef') return false;
+    restoring = true; try { showPage(lp); } finally { restoring = false; }
+    try { const sc = JSON.parse(sessionStorage.getItem('catScroll') || 'null'); if (sc && sc.p === lp && sc.y > 0) setTimeout(() => window.scrollTo({ top: sc.y, behavior: 'instant' }), 400); } catch (e) {}
+    return true;
+  };
+  if (!restorePage()) markNav('page-releve');
+  window.addEventListener('cat-ready', () => { if (!navigated) restorePage(); });
 });
